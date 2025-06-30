@@ -1,8 +1,10 @@
 import pandas as pd
+import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import streamlit as st
 from PIL import Image
+import plotly.express as px
 
 logo = Image.open("https://github.com/M-R7/Projet_Pompier_DA/blob/main/img_pompiers.png")
 
@@ -224,8 +226,19 @@ elif page == pages[1]:
         st.markdown("<h4>3. Remarques</h4>", unsafe_allow_html=True)
         st.markdown("<h4>4. Exploration des données</h4>", unsafe_allow_html=True)
 elif page == pages[2]:
-    st.write("soon")
+    st.write("Data Visualisation")
+    #lecture du fichier merge pour la dataviz streamlit
+    df_merge = pd.read_csv("/content/gdrive/MyDrive/PROJET POMPIER/Commun/Dataset/fichier_dataviz_streamlit.csv")
+
+    #nombre de mobilisation par année
+    df_year = df_merge.groupby(["CalYear_x"], as_index=False).agg(
+        count=("IncidentNumber","count"))  
     
+    #représentation en histogramme avec plotly
+    fig = px.histogram(df_year,x = 'CalYear_x', y='count',nbins=30)
+    fig.update_layout(bargap=0.2)
+    st.pyplot(fig)
+
 elif page == pages[3]:
     #lecture du fichier mobilisation v2
     df10 = pd.read_csv("/content/gdrive/MyDrive/Etudes/DataScientest/Projet/map_station_data.csv")#,sep="\t")
