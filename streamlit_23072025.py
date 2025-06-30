@@ -4,7 +4,7 @@ from streamlit_folium import st_folium
 import streamlit as st
 from PIL import Image
 
-logo = Image.open("/content/gdrive/MyDrive/Commun/img_pompiers.png")
+logo = Image.open("https://github.com/M-R7/Projet_Pompier_DA/blob/main/img_pompiers.png")
 
 logo = logo.resize((345, 195))
 col1, col2, col3 = st.columns([1, 2, 1])
