@@ -5,6 +5,7 @@ from streamlit_folium import st_folium
 import streamlit as st
 from PIL import Image
 import plotly.express as px
+import plotly.graph_objects as go
 
 # logo = Image.open("https://github.com/M-R7/Projet_Pompier_DA/blob/main/img_pompiers.png")
 logo = Image.open("img_pompiers.png")
@@ -226,19 +227,116 @@ elif page == pages[1]:
         st.markdown("<h4>2. Période</h4>", unsafe_allow_html=True)
         st.markdown("<h4>3. Remarques</h4>", unsafe_allow_html=True)
         st.markdown("<h4>4. Exploration des données</h4>", unsafe_allow_html=True)
+
 elif page == pages[2]:
     st.write("Data Visualisation")
     #lecture du fichier merge pour la dataviz streamlit
-    df_merge = pd.read_csv("/content/gdrive/MyDrive/PROJET POMPIER/Commun/Dataset/fichier_dataviz_streamlit.csv")
+    df_merge = pd.read_csv("fichier_dataviz_streamlit.csv")
 
-    #nombre de mobilisation par année
-    df_year = df_merge.groupby(["CalYear_x"], as_index=False).agg(
-        count=("IncidentNumber","count"))  
+    st.markdown("<h4 style='font-size:20px; margin-bottom: 0px;'>Data Visualisation</h4>", unsafe_allow_html=True)
+    choix = st.selectbox("Wich analyse would you see ?",("Analyse en lien avec des variables de temps et de date", "Analyse par type d'incident", 
+                                                               "Analyses en lien avec des variables géographique","Autres analyses"))
+
+    if choix == "Analyse en lien avec des variables de temps et de date":
+        
+        second_choice = st.radio("",options=["Année", "Mois", "Semaine", "Jour", "Heure"])
+
+        if second_choice == "Année" :
+
+            #nombre de mobilisation par année
+            df_year = df_merge.groupby(["CalYear_x"], as_index=False).agg(count=("IncidentNumber","count"))  
+            #représentation en histogramme avec plotly
+            fig = px.histogram(df_year,x = 'CalYear_x', y='count',nbins=30, title="Nombre de mobilisations par année")
+            fig.update_layout(bargap=0.2)
+            st.plotly_chart(fig)
+
+            #analyse temps moyen de mobilisation et de trajet par année
+            year_travel_time = df_merge.groupby("CalYear_x")["TravelTimeSeconds"].mean()
+            year_turnout_time = df_merge.groupby("CalYear_x")["TurnoutTimeSeconds"].mean()
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x = year_travel_time.index, y = year_travel_time.values,mode='lines',name='TravelTimeSeconds'))
+            fig.add_trace(go.Scatter(x = year_turnout_time.index, y = year_turnout_time.values,mode='lines',name='TurnoutTimeSeconds'))
+            fig.update_layout(title='Temps moyen de mobilisation et de trajet par année')
+            st.plotly_chart(fig)
+
+            #Analyse du temps de réponse moyen par année
+            year_response_time = df_merge.groupby("CalYear_x")["ResponseTime"].mean()
+            fig=px.bar(x = year_response_time.index, y = year_response_time.values, title='Temps de réponse moyen par année')
+            fig.update_layout(xaxis_title='Année', yaxis_title='Temps de réponse')
+            st.plotly_chart(fig)
     
-    #représentation en histogramme avec plotly
-    fig = px.histogram(df_year,x = 'CalYear_x', y='count',nbins=30)
-    fig.update_layout(bargap=0.2)
-    st.pyplot(fig)
+        elif second_choice == "Mois" :
+
+            #analyse du temps de réponse moyen par mois
+            df_month = df_merge.groupby(["month"], as_index=False).agg(count=("month","count"), moyenne_temps=("ResponseTime","mean"))
+            fig = px.line(x=df_month['month'], y=df_month['moyenne_temps'], title='Temps de réponse moyen par mois')
+            fig.update_layout(xaxis_title='Mois', yaxis_title='Temps de réponse moyen', yaxis_range=[300,400])
+            fig.update_layout(xaxis_labelalias={1:'Janvier', 2:'Février', 3:'Mars', 4:'Avril', 5:'Mai', 6:'Juin', 7:'Juillet', 8:'Août', 9:'Septembre', 10:'Octobre', 11:'Novembre', 12:'Décembre'})
+            st.plotly_chart(fig)
+
+            #analyse de la répartition des temps de réponse par mois
+            fig = px.box(x=df_merge['month'], y=df_merge['ResponseTime'], title='Répartition des temps de réponse par mois')
+            fig.update_layout(xaxis_title='Mois', yaxis_title='Temps de réponse')
+            fig.update_layout(xaxis_labelalias={1:'Janvier', 2:'Février', 3:'Mars', 4:'Avril', 5:'Mai', 6:'Juin', 7:'Juillet', 8:'Août', 9:'Septembre', 10:'Octobre', 11:'Novembre', 12:'Décembre'})
+            st.plotly_chart(fig)
+
+            #analyse de la répartition du temps de trajet par mois
+            fig = px.box(x=df_merge['month'], y=df_merge['TravelTimeSeconds'], title='Répartition du temps de trajet par mois')
+            fig.update_layout(xaxis_title='Mois', yaxis_title='Temps de trajet')
+            fig.update_layout(xaxis_labelalias={1:'Janvier', 2:'Février', 3:'Mars', 4:'Avril', 5:'Mai', 6:'Juin', 7:'Juillet', 8:'Août', 9:'Septembre', 10:'Octobre', 11:'Novembre', 12:'Décembre'})
+            st.plotly_chart(fig)
+
+        elif second_choice == "Semaine" :
+
+            #analyse du temps de réponse moyen par semaine
+            df_week = df_merge.groupby(["week"], as_index=False).agg(count=("week","count"), moyenne_temps=("ResponseTime","mean"))
+            fig = px.line(x=df_week['week'], y=df_week['moyenne_temps'], title='Temps de réponse moyen par semaine')
+            fig.update_layout(xaxis_title='Semaine', yaxis_title='Temps de réponse moyen', yaxis_range=[300,400])
+            st.plotly_chart(fig)
+
+            #Répartition des temps de réponse par semaine
+            fig = px.box(x=df_merge['week'], y=df_merge['ResponseTime'], title='Répartition des temps de réponse par semaine')
+            fig.update_layout(xaxis_title='Semaine', yaxis_title='Temps de réponse')
+            st.plotly_chart(fig)
+
+        elif second_choice == "Jour" :
+
+            #analyse du temps de trajet moyen par jour de la semaine
+            day_response_time = df_merge.groupby("Day")["TravelTimeSeconds"].mean()
+            fig = px.bar(x=day_response_time.index, y=day_response_time.values, title='Temps de trajet moyenne par jour de la semaine')
+            fig.update_layout(xaxis_title='Jour', yaxis_title='Temps de trajet')
+            st.plotly_chart(fig)
+
+        elif second_choice == "Heure" :
+            
+            #temps de réponse moyen par heure de la journée
+            df_hour = df_merge.groupby(["HourOfCall_x"], as_index=False).agg(ResponseTime_moyen=("ResponseTime","mean"))
+            #affichage temps moyen intervention
+            fig = px.line(df_hour, x='HourOfCall_x', y='ResponseTime_moyen', title='Temps de réponse moyen par heure de la journée')
+            fig.update_layout(xaxis_title='Heure de la journée', yaxis_title='Temps de réponse moyen')
+            st.plotly_chart(fig)
+
+            #analyse du temps de réponse moyen par heure de la journée, évolution par année
+            hour_response_time = df_merge.groupby(["HourOfCall_x", "CalYear_x"],as_index=False).agg(mean=("ResponseTime","mean"))
+            mean = hour_response_time["mean"]
+            fig = px.bar(x=hour_response_time.HourOfCall_x, y=mean, 
+                title='Temps de réponse moyen par heure',
+                animation_frame = hour_response_time["CalYear_x"])
+            fig.update_layout(xaxis_title='Heure', yaxis_title='Temps de réponse')
+            st.plotly_chart(fig)
+
+
+    elif choix == "Analyse par type d'incident" :
+
+        #affichage du nombre d'intervention par 'IncidentGroup' et par année
+        nb_incident_by_group = df_merge.groupby(["IncidentGroup","CalYear_x"], as_index=False).agg(
+            count=("IncidentGroup","count"))
+        fig = px.bar(x = nb_incident_by_group["IncidentGroup"] ,y = nb_incident_by_group['count'],
+             title="Nombre d'incident par groupe d'incident",
+             animation_frame = nb_incident_by_group['CalYear_x'])
+        fig.update_layout(xaxis_title='CalYear',yaxis_title='IncidentGroup')
+        st.plotly_chart(fig)
+
 
 elif page == pages[3]:
     #lecture du fichier mobilisation v2
