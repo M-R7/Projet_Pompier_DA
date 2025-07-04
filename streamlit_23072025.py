@@ -6,6 +6,8 @@ import streamlit as st
 from PIL import Image
 import plotly.express as px
 import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # logo = Image.open("https://github.com/M-R7/Projet_Pompier_DA/blob/main/img_pompiers.png")
 logo = Image.open("img_pompiers.png")
@@ -337,6 +339,27 @@ elif page == pages[2]:
         fig.update_layout(xaxis_title='CalYear',yaxis_title='IncidentGroup')
         st.plotly_chart(fig)
 
+        #affichage du responsetime moyen par 'IncidentGroup' et par année
+        resptime_incident_by_group = df_merge.groupby(["IncidentGroup","CalYear_x"], as_index=False).agg(mean=("ResponseTime","mean"))
+        fig = px.bar(x = resptime_incident_by_group["IncidentGroup"] ,y = resptime_incident_by_group['mean'],
+             title="Temps moyen de réponse par groupe d'incident",
+             animation_frame = resptime_incident_by_group['CalYear_x'])
+        fig.update_layout(xaxis_title='CalYear',yaxis_title='Mean ResponseTime')
+        st.plotly_chart(fig)
+
+        #affichage du nombre d'intervention par type d'incident dans le groupe 'Special Service' et par année
+        fig = plt.figure(figsize=(10,5))
+        sns.countplot(x = df_merge['SpecialServiceType'], hue = df_merge['CalYear_x'], palette="Spectral")
+        plt.title("Nombre d'incident par groupe d'incident")
+        plt.xticks(rotation=90)
+        plt.show()
+
+    elif choix == "Autres analyses" :
+
+        #visualisation de distancemetrique vs responsetime avec plotly express
+        fig = sns.relplot(x = "ResponseTime", y = "DistanceMetrique", kind = 'line', data = df_merge)
+        plt.title("DistanceMetrique vs ResponseTime")
+        st.show(fig)
 
 elif page == pages[3]:
     #lecture du fichier mobilisation v2
