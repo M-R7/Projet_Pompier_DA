@@ -6,6 +6,9 @@ from streamlit_folium import st_folium
 import streamlit as st
 from PIL import Image
 import plotly.express as px
+import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # logo = Image.open("https://github.com/M-R7/Projet_Pompier_DA/blob/main/img_pompiers.png")
 logo = Image.open("img_pompiers.png")
