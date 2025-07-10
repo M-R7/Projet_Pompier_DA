@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+import numpy as np
 import folium
 from streamlit_folium import st_folium
 import streamlit as st
@@ -31,7 +32,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 st.sidebar.title("Temps de réponse de la Brigade des Pompiers de Londres")
 
-pages = ["Introduction","Jeux de données","Data Visualisation","Cartographie","Prédiction du temps de réponse"]
+pages = ["Introduction","Jeux de données","Data Visualisation","Cartographie","Modélisation"]
 page=st.sidebar.radio("",pages)
 st.sidebar.markdown("""
     <div style='background-color:  #ffc2b5; padding: 20px; border-radius: 5px; color:  #1b1a1a; text-align: left;'>
@@ -453,3 +454,166 @@ elif page == pages[3]:
 
     # Affichage de la carte dans Streamlit
     st_folium(m, width=700, height=500)
+
+elif page == pages[4]:
+    st.markdown("<h4 style='font-size:20px; margin-bottom: 0px;'>Modélisation</h4>", unsafe_allow_html=True)
+
+    #chargement des packages pour la modélisation
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import classification_report
+    import joblib
+    from sklearn.model_selection import train_test_split
+    from sklearn.impute import SimpleImputer
+    from sklearn.preprocessing import OneHotEncoder
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.preprocessing import FunctionTransformer
+
+    st.markdown('''Notre variable cible est ResponseTime (variable additionnant le temps de mobilisation et le temps de trajet). 
+                Cette variable est numérique et continue, nous faisons donc le **choix de tester des modèles de type régression**.''')
+    st.markdown('''train-test-split avec :\
+                - Jeu de test : 20%\
+                - Application d'un random_state pour figer les jeux d'entrainement et de test pour tous les entrainements de modèles\
+                \
+                Dans un premier temps évaluation uniquement des scores pour déterminer les meilleures modèles.
+                ''')
+    
+    #lecture du fichier pour la modélisation
+    @st.cache_data #ajout du caching decorator pour le chargement du fichier
+    def load_data_final(url):
+        df = pd.read_csv(url)
+        return df
+    
+    df = load_data_final("Dataset_Final.csv")
+
+    @st.cache_data #ajout du cache decorator pour le preprocessing
+    def preprocessing_cont(df):
+        #remplacement des noms des jours de la variable Day par les chiffres correspondant pour faciliter l'encodage des variables temporelles
+        df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
+
+        #sélection des variables explicatives et variables cibles
+        X = df.drop('ResponseTime', axis = 1)
+        y = df['ResponseTime']
+
+        #séparation en jeu d'entrainement et de test, on fixe la séparation avec le paramètre random_state
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        ##Préprocessing
+        #séparation des colonnes numériques et catégorielles
+        var_num = ['NumCalls', 'DistanceMetrique']
+        var_cat = ['CalYear','DeployedFromLocation', 'PlusCode_Description', 'IncidentGroup', 'gpe_geo', 'PropertyCategory_bis', 'AddressQualifier_bis']
+        var_time = ['HourOfCall', 'week', 'month', 'Day']
+
+        X_train_num = X_train[var_num]
+        X_train_cat = X_train[var_cat]
+        X_train_time = X_train[var_time]
+        X_test_num = X_test[var_num]
+        X_test_cat = X_test[var_cat]
+        X_test_time = X_test[var_time]
+
+        #gestion des variables temps avec sinus et cosinus (variable cyclique)
+        def sin_transformer(period):
+            return FunctionTransformer(lambda x: np.sin(x / period * 2 * np.pi))
+
+        def cos_transformer(period):
+            return FunctionTransformer(lambda x: np.cos(x / period * 2 * np.pi))
+
+        for var in X_train_time :
+            X_train_time[var + '_sin'] = sin_transformer(24).fit_transform(X_train_time[var])
+            X_train_time[var + '_cos'] = cos_transformer(24).fit_transform(X_train_time[var])
+            X_train_time = X_train_time.drop(var, axis=1)
+
+        for var in X_test_time :
+            X_test_time[var + '_sin'] = sin_transformer(24).fit_transform(X_test_time[var])
+            X_test_time[var + '_cos'] = cos_transformer(24).fit_transform(X_test_time[var])
+            X_test_time = X_test_time.drop(var, axis=1)
+
+            X_train_time.reset_index(drop=True, inplace=True)
+            X_test_time.reset_index(drop=True, inplace=True)
+
+        #remplissage des valeurs manquantes par simple imputer avec la stratégie median pour les variables numériques et le most frequent pour les variables catégorielles
+        #gestion des données manquantes pour les variables numériques
+        imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
+        X_train_num = imputer_num.fit_transform(X_train_num)
+        X_test_num = imputer_num.transform(X_test_num)
+
+        #gestion des données manquantes pour les variables catégorielles
+        imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
+        X_train_cat = imputer_cat.fit_transform(X_train_cat)
+        X_test_cat = imputer_cat.transform(X_test_cat)
+
+        #standardisation des variables numériques avec StandardScaler
+        scaler = StandardScaler()
+        X_train_num = scaler.fit_transform(X_train_num)
+        X_test_num = scaler.transform(X_test_num)
+
+        #encodage des variables catégorielles
+        encoder = OneHotEncoder(drop = 'first', sparse_output=False)
+        X_train_cat = encoder.fit_transform(X_train_cat)
+        X_test_cat = encoder.transform(X_test_cat)
+
+        ##passage en dataframe des tableaux récupérés après encodage
+        X_train_num = pd.DataFrame(X_train_num)
+        X_test_num = pd.DataFrame(X_test_num)
+        X_train_cat = pd.DataFrame(X_train_cat)
+        X_test_cat = pd.DataFrame(X_test_cat)
+
+        #concaténation des jeux d'entraînement et de test
+        X_train = pd.concat([X_train_num, X_train_cat, X_train_time], axis=1)
+        X_test = pd.concat([X_test_num, X_test_cat, X_test_time], axis=1)
+
+        X_train.columns = X_train.columns.astype(str)
+        X_test.columns = X_test.columns.astype(str)
+
+        return X_train, y_train, X_test, y_test
+
+    #exécution de la fonction de preprocessing
+    X_train, y_train, X_test, y_test = preprocessing_cont(df)
+
+    #chargement des modèles
+    @st.cache_data #ajout du cache decorator pour le chargement des modeles
+    def load_models():
+        reglog_cont = joblib.load("model_reglog_cont")
+        reglin_cont = joblib.load("model_reglin_cont")
+        dtreg_cont = joblib.load("model_dtreg_cont")
+        rf_reg_cont = joblib.load("model_rfreg_cont.joblib")
+        ridge_cont = joblib.load("model_ridge_cont")
+        lasso_cont = joblib.load("model_lasso_cont")
+        return reglog_cont, reglin_cont, dtreg_cont, rf_reg_cont, ridge_cont, lasso_cont
+    
+    reglog_cont, reglin_cont, dtreg_cont, rf_reg_cont, ridge_cont, lasso_cont = load_models()
+
+    #chargement des scores de chaque modele
+    @st.cache_data #ajout du cache decorator pour le chargement des scores de chaque modele
+    def load_scores():
+        reglog_cont_score_train = reglog_cont.score(X_train, y_train)
+        reglog_cont_score_test = reglog_cont.score(X_test, y_test)
+    
+        reglin_cont_score_train = reglin_cont.score(X_train, y_train)
+        reglin_cont_score_test = reglin_cont.score(X_test, y_test)
+
+        dtreg_cont_score_train = dtreg_cont.score(X_train, y_train)
+        dtreg_cont_score_test = dtreg_cont.score(X_test,y_test)
+
+        rf_reg_cont_score_train = rf_reg_cont.score(X_train, y_train)
+        rf_reg_cont_score_test = rf_reg_cont.score(X_test, y_test)
+
+        ridge_cont_score_train = ridge_cont.score(X_train, y_train)
+        ridge_cont_score_test = ridge_cont.score(X_test, y_test)
+
+        lasso_cont_score_train = lasso_cont.score(X_train, y_train)
+        lasso_cont_score_test = lasso_cont.score(X_test, y_test)
+        return reglog_cont_score_train, reglog_cont_score_test, reglin_cont_score_train, reglin_cont_score_test, dtreg_cont_score_train, dtreg_cont_score_test, \
+            rf_reg_cont_score_train, rf_reg_cont_score_test, ridge_cont_score_train, ridge_cont_score_test,lasso_cont_score_train, lasso_cont_score_test
+
+    reglog_cont_score_train, reglog_cont_score_test, reglin_cont_score_train, reglin_cont_score_test, dtreg_cont_score_train, dtreg_cont_score_test, \
+            rf_reg_cont_score_train, rf_reg_cont_score_test, ridge_cont_score_train, ridge_cont_score_test,lasso_cont_score_train, lasso_cont_score_test = load_scores()
+
+    #affichage des scores pour comparatif
+    st.data_editor([
+        {"Model Type":"Régression Logistique", "Train Score" : reglog_cont_score_train, "Test Score" : reglog_cont_score_test},
+        {"Model Type":"Régression Linéaire", "Train Score" : reglin_cont_score_train, "Test Score" : reglin_cont_score_test},
+        {"Model Type":"Decision Tree Regressor", "Train Score" : dtreg_cont_score_train, "Test Score" : dtreg_cont_score_test},
+        {"Model Type":"Random Forest Regressor", "Train Score" : rf_reg_cont_score_train, "Test Score" : rf_reg_cont_score_test},
+        {"Model Type":"Bayesian Ridge", "Train Score" : ridge_cont_score_train, "Test Score" : ridge_cont_score_test},
+        {"Model Type":"Lasso Lars", "Train Score" : lasso_cont_score_train, "Test Score" : lasso_cont_score_test}
+    ])
