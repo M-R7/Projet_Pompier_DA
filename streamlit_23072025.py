@@ -463,6 +463,15 @@ elif page == pages[4]:
     from sklearn.preprocessing import StandardScaler
     from sklearn.preprocessing import FunctionTransformer
 
+    st.markdown('''Notre variable cible est ResponseTime (variable additionnant le temps de mobilisation et le temps de trajet). 
+                Cette variable est numérique et continue, nous faisons donc le **choix de tester des modèles de type régression**.''')
+    st.markdown('''train-test-split avec :\
+                - Jeu de test : 20%\
+                - Application d'un random_state pour figer les jeux d'entrainement et de test pour tous les entrainements de modèles\
+                \
+                Dans un premier temps évaluation uniquement des scores pour déterminer les meilleures modèles.
+                ''')
+    
     #lecture du fichier pour la modélisation
     @st.cache_data #ajout du caching decorator pour le chargement du fichier
     def load_data_final(url):
