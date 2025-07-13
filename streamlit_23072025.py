@@ -9,6 +9,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import seaborn as sns
+import statsmodels.api
+from scipy.stats import kruskal
 
 # logo = Image.open("https://github.com/M-R7/Projet_Pompier_DA/blob/main/img_pompiers.png")
 logo = Image.open("img_pompiers.png")
@@ -57,6 +59,9 @@ st.sidebar.markdown("""
         </a>
     </div>
 """, unsafe_allow_html=True)
+
+# hidden div with anchor
+st.markdown("<div id='linkto_top'></div>", unsafe_allow_html=True)
 
 if page == pages[0]:
     st.markdown("""
@@ -395,7 +400,7 @@ Il comporte 34 entrées et 2 colonnes.
         st.markdown(html_gpegeo, unsafe_allow_html=True)
 
 elif page == pages[2]:
-    st.write("Data Visualisation")
+    st.markdown("<h4 style='font-size:20px; margin-bottom: 0px;'>Data Visualisation</h4>", unsafe_allow_html=True)
     #lecture du fichier merge pour la dataviz streamlit
     
     @st.cache_data #ajout du caching decorator pour le chargement du fichier
@@ -404,22 +409,24 @@ elif page == pages[2]:
         return df
     
     df_merge = load_data("fichier_dataviz_streamlit.csv")
-
-    st.markdown("<h4 style='font-size:20px; margin-bottom: 0px;'>Data Visualisation</h4>", unsafe_allow_html=True)
-    choix = st.selectbox("Wich analyse would you see ?",("Analyse en lien avec des variables de temps et de date", "Analyse par type d'incident", 
-                                                               "Analyses en lien avec des variables géographique","Autres analyses"))
-
-    if choix == "Analyse en lien avec des variables de temps et de date":
+  
+    #séparation de la page en 5 partie pour ajouter les toggle pour chaque partie
+    first, second, third, fourth, fifth = st.columns(5)
+    
+    if first.toggle("Visualisation :calendar:") :
+        st.markdown(":blue-background[Visualisations en lien avec des variables de temps et de date] :calendar:")
 
         x_columns = ['CalYear_x','month', 'week', 'Day', 'HourOfCall_x']
-        x_axis_val = st.selectbox('Select time value', options=x_columns)
-        df = df_merge.groupby(x_axis_val, as_index=False).agg(mean=("ResponseTime", "mean"))
-        mean = df["mean"]
-        fig = px.line(df, x=x_axis_val, y=mean, line_shape='linear', range_y=(320,380))
-        fig.update_layout(title="Temps de réponse moyen par {}".format(x_axis_val))
-        st.plotly_chart(fig)
-
-        #second_choice = st.radio("",options=["Année", "Mois", "Semaine", "Jour", "Heure"])
+        x_axis_val = st.pills(":blue-background[Selectionner l'échelle de temps]", options=x_columns)
+        
+        if x_axis_val == None :
+            st.text("Rien ne s'affiche ? Il faut choisir une échelle de temps.")
+        else:
+            df = df_merge.groupby(x_axis_val, as_index=False).agg(mean=("ResponseTime", "mean"))
+            mean = df["mean"]
+            fig = px.line(df, x=x_axis_val, y=mean, line_shape='linear', range_y=(320,380))
+            fig.update_layout(title="Temps de réponse moyen par {}".format(x_axis_val),yaxis_title="Temps de réponse moyen")
+            st.plotly_chart(fig)
 
         if x_axis_val == "CalYear_x" :
         
@@ -427,7 +434,7 @@ elif page == pages[2]:
             df_year = df_merge.groupby(["CalYear_x"], as_index=False).agg(count=("IncidentNumber","count"))  
             #représentation en histogramme avec plotly
             fig1 = px.histogram(df_year,x = 'CalYear_x', y='count',nbins=30, title="Nombre de mobilisations par année")
-            fig1.update_layout(bargap=0.2)
+            fig1.update_layout(bargap=0.2, yaxis_title="Nombre de mobilisations", xaxis_title='Année')
             st.plotly_chart(fig1)
 
             #analyse temps moyen de mobilisation et de trajet par année
@@ -436,29 +443,20 @@ elif page == pages[2]:
             fig2 = go.Figure()
             fig2.add_trace(go.Scatter(x = year_travel_time.index, y = year_travel_time.values,mode='lines',name='TravelTimeSeconds', line=dict(color='Indigo')))
             fig2.add_trace(go.Scatter(x = year_turnout_time.index, y = year_turnout_time.values,mode='lines',name='TurnoutTimeSeconds', line=dict(color='LightBlue')))
-            fig2.update_layout(title='Temps moyen de mobilisation et de trajet par année')
+            fig2.update_layout(title='Temps moyen de mobilisation et de trajet par année', yaxis_title='Temps moyen', xaxis_title='Année')
             st.plotly_chart(fig2)
    
         elif x_axis_val == "month" :
 
             #analyse de la répartition des temps de mobilisation et trajet par mois
-            fig21 = go.Figure()
-            fig21.add_trace(go.Box(x=df_merge['month'], y=df_merge['TurnoutTimeSeconds'], name='Mobilisation'))
-            fig21.add_trace(go.Box(x=df_merge['month'], y=df_merge['TravelTimeSeconds'], name='Trajet'))
-            fig21.update_layout(title="Répartition des temps de mobilisation et trajet par mois", boxmode='group')
-            st.plotly_chart(fig21)
-
-            #analyse de la répartition des temps de mobilisation par mois
-            #fig5 = px.box(x=df_merge['month'], y=df_merge['TurnoutTimeSeconds'], title="Répartition des temps de mobilisation par mois")
-            #fig5.update_layout(xaxis_title='Mois', yaxis_title='Temps de mobilisation',)
-            #fig5.update_layout(xaxis_labelalias={1:'Janvier', 2:'Février', 3:'Mars', 4:'Avril', 5:'Mai', 6:'Juin', 7:'Juillet', 8:'Août', 9:'Septembre', 10:'Octobre', 11:'Novembre', 12:'Décembre'})
-            #st.plotly_chart(fig5)
-            
-            #analyse de la répartition du temps de trajet par mois
-            #fig6 = px.box(x=df_merge['month'], y=df_merge['TravelTimeSeconds'], title="Répartition du temps de trajet par mois")
-            #fig6.update_layout(xaxis_title='Mois', yaxis_title='Temps de trajet')
-            #fig6.update_layout(xaxis_labelalias={1:'Janvier', 2:'Février', 3:'Mars', 4:'Avril', 5:'Mai', 6:'Juin', 7:'Juillet', 8:'Août', 9:'Septembre', 10:'Octobre', 11:'Novembre', 12:'Décembre'})
-            #st.plotly_chart(fig6)
+            @st.cache_data #ajout du caching decorator pour le chargement du graph
+            def afficher_fig21():
+                fig21 = go.Figure()
+                fig21.add_trace(go.Box(x=df_merge['month'], y=df_merge['TurnoutTimeSeconds'], name='Mobilisation'))
+                fig21.add_trace(go.Box(x=df_merge['month'], y=df_merge['TravelTimeSeconds'], name='Trajet'))
+                fig21.update_layout(title="Répartition des temps de mobilisation et trajet par mois", boxmode='group')
+                st.plotly_chart(fig21)
+            afficher_fig21()
 
         elif x_axis_val == "week" :
 
@@ -487,14 +485,15 @@ elif page == pages[2]:
             fig11.update_layout(xaxis_title='Heure', yaxis_title='Temps de réponse')
             st.plotly_chart(fig11)
 
-    elif choix == "Analyse par type d'incident" :
-
+    if second.toggle("Visualisation :fire_engine:") :
+        st.markdown(":blue-background[Analyse par type d'incident] :fire_engine:")
+    
         #affichage du nombre d'intervention par 'IncidentGroup' et par année
         nb_incident_by_group = df_merge.groupby(["IncidentGroup","CalYear_x"], as_index=False).agg(
-            count=("IncidentGroup","count"))
-        fig12 = px.bar(x = nb_incident_by_group["IncidentGroup"] ,y = nb_incident_by_group['count'],
-             title="Nombre d'incident par groupe d'incident",
-             animation_frame = nb_incident_by_group['CalYear_x'])
+            count=("IncidentGroup","count"))      
+        fig12 = px.pie(nb_incident_by_group, values='count',names='IncidentGroup',
+                       color_discrete_map={'False Alarm':'royalblue', 'Special Service':'LightBlue', 'Fire':'FireBrick'},
+                       title="Nombre d'incident par groupe d'incident",)
         fig12.update_layout(xaxis_title='CalYear',yaxis_title='IncidentGroup')
         st.plotly_chart(fig12)
 
@@ -513,8 +512,9 @@ elif page == pages[2]:
         plt.xticks(rotation=90)
         st.pyplot(fig14)
 
-    elif choix == "Analyses en lien avec des variables géographique":
-        
+    if third.toggle("Visualisation :globe_with_meridians:") :
+        st.markdown(":blue-background[Analyses en lien avec des variables géographique] :globe_with_meridians:")
+
         #Nombre de mobilisation par groupe géographique par année
         df_merge_geo = df_merge.groupby(["gpe_geo","CalYear_x"], as_index=False).agg(
             count=("gpe_geo","count"))
@@ -543,12 +543,16 @@ elif page == pages[2]:
         st.plotly_chart(fig20)
 
         #visualisation de distancemetrique vs responsetime avec plotly express
-        fig17 = sns.relplot(x = "ResponseTime", y = "DistanceMetrique", kind = 'line', data = df_merge)
-        plt.title("DistanceMetrique vs ResponseTime")
-        st.pyplot(fig17)
+        @st.cache_data #ajout du caching decorator pour le chargement du graph
+        def afficher_fig17():
+            fig17 = sns.relplot(x = "ResponseTime", y = "DistanceMetrique", kind = 'line', data = df_merge)
+            plt.title("DistanceMetrique vs ResponseTime")
+            st.pyplot(fig17)
+        afficher_fig17()
 
-    elif choix == "Autres analyses" :
-        #test
+    if fourth.toggle("Visualisation :fire_extinguisher:"):
+        st.markdown(":blue-background[Autres analyses] :fire_extinguisher:")
+    
         #analyse du nombre d'incident par AdressQualifier
         df_merge_address = df_merge.groupby(["AddressQualifier","CalYear_x"], as_index=False).agg(
             count=("AddressQualifier","count"))
@@ -563,7 +567,102 @@ elif page == pages[2]:
 
         fig19 = px.bar(x=df_merge_year['CalYear_x'], y=df_merge_year['count'])
         fig19.update_layout(title="Nombre de stations mobilisées par année", xaxis_title='CalYear',yaxis_title='count')
-        st.plotly_chart(fig19))
+        st.plotly_chart(fig19)
+
+    if fifth.toggle("Visualisation :chart:") :
+        st.markdown(":blue-background[Test de corrélation] :chart:")
+
+        tests = ["Matrices de corrélation", "Tests statistiques"]
+        selection = st.segmented_control("", tests)
+
+        if selection == "Matrices de corrélation":
+            st.write("Matrice de corrélation en incluant le regroupement géographique")
+            #remplacement des valeurs de gpe_geo par 1,2,3,4,5 pour la prise en compte dans la matrice de corrélation
+            df_corr = df_merge
+            df_corr['gpe_geo'] = df_corr['gpe_geo'].replace({'North East': 1, 'North West': 2, 'South East': 3, 'South West': 4, 'London': 5})
+            #selection des variables numériques de df_final pour application dans la matrice
+            df_num = df_corr[['CalYear_x','HourOfCall_x','TurnoutTimeSeconds', 'TravelTimeSeconds', 'ResponseTime','NumCalls', 'gpe_geo', 'week', 'month']]
+            #affichage d'une heatmap sur df_num
+            fig22, ax = plt.subplots()
+            ax = sns.heatmap(df_num.corr(), annot=True)
+            st.pyplot(fig22)
+            matrice1 = st.checkbox("Voir l'interprétation")
+            if matrice1:
+                st.write('<div style="text-align: justify;">Cette première matrice nous permet de voir que la variable cible ResponseTime ne présente pas de corrélation avec les autres variables numériques \
+                         hormis les variables ayant été utilisées pour sa création (TravelTimeSeconds et TurnoutTimeSeconds). \
+                         Sur ces deux variables on constate que l’une a plus de poids dans la variable cible, il s’agit de TravelTimeSeconds. \
+                         Ce point est cohérent avec les visualisations qui ont pu être faites, TravelTime présentant plus de variabilité et étant numériquement plus élevée, \
+                         il est logique que celle-ci impacte plus le temps de réponse global. \
+                         Cependant il nous manque une variable dans cette matrice, la distance métrique.</div>', unsafe_allow_html=True)
+            st.markdown(":blue-background[------------------------------------------------------------------------------------------------------------------------------------------]",width="content")
+            st.write("Matrice de corrélation en incluant Distance Metrique")
+            df_corr = df_merge
+            #selection des variables numériques de df_final pour application dans la matrice
+            df_num = df_corr[['CalYear_x','HourOfCall_x', 'ResponseTime','NumCalls', 'DistanceMetrique', 'week', 'month']]
+            #affichage d'une heatmap sur df_num
+            fig23, ax = plt.subplots()
+            ax = sns.heatmap(df_num.corr(), annot=True)
+            st.pyplot(fig23)
+            matrice2 = st.checkbox("Voir  l'interprétation")
+            if matrice2:
+                st.write('<div style="text-align: justify;">Sur cette seconde matrice on constate que la variable présentant le plus de corrélation avec ResponseTime est DistanceMetrique.</div>', unsafe_allow_html=True)
+
+        if selection == "Tests statistiques":
+            st.markdown("**Test ANOVA**")
+            st.write('<div style="text-align: justify;">Toutes les variables catégorielles testées ont un effet significatif sur la variable cible ResponseTime. \
+                     Cela peut s’expliquer car un très grand nombre d’observations (ici, > 2,4 millions entrées), \
+                     même un effet minuscule devient statistiquement significatif.</div>', unsafe_allow_html=True)
+            view_ANOVA_result = st.checkbox("Voir les résultats brut ANOVA")
+            if view_ANOVA_result:
+                result = statsmodels.formula.api.ols('ResponseTime ~ CalYear_x + HourOfCall_x + DeployedFromLocation + PlusCode_Description', data=df_merge).fit()
+                affiche_result = statsmodels.api.stats.anova_lm(result)
+                st.write(affiche_result)
+            st.markdown(":blue-background[------------------------------------------------------------------------------------------------------------------------------------------]",width="content")
+            
+            #définition des variables catégorielles
+            cat_cols = ['DeployedFromLocation', 'PlusCode_Description', 'Day', 'IncidentGroup', 'PropertyCategory', 'AddressQualifier', 'gpe_geo']
+
+            st.markdown("**Test Kruskal**")
+            st.write('<div style="text-align: justify;">Idem que pour l’Anova, toutes les variables testées sauf DeployedFromLocation apparaissent comme ayant un effet significatif\
+                      avec la variable cible ResponseTime. Afin de connaitre la contribution relative de chaque variable au modèle, on utilise l’eta squared</div>', unsafe_allow_html=True)
+            view_Kruskal_result = st.checkbox("Voir les résultats brut Kruskal")
+            if view_Kruskal_result:
+                @st.cache_data #ajout du caching decorator pour le chargement et affichage du test Kruskal
+                def test_kruskal() :
+                    for col in cat_cols:
+                        groups = [df_merge[df_merge[col] == val]['DistanceMetrique'].dropna() for val in df_merge[col].unique()]
+                        if len(groups) > 1:
+                            stat, p = kruskal(*groups)
+                            if p < 0.05:
+                                st.write(col,": p = ",p," {'(significatif)")
+                            else:
+                                st.write(col,": p = ",p," {(non significatif)")
+                test_kruskal()
+            st.markdown(":blue-background[------------------------------------------------------------------------------------------------------------------------------------------]",width="content")
+            
+            st.markdown("**Test Eta squared**")
+            st.write('<div style="text-align: justify;">Une valeur η² > 0.01 est considérée faible, > 0.06 est moyenne, > 0.14 est forte. \
+                     Ici toutes nos variables sont < 0.01 et donc non significatives.</div>', unsafe_allow_html=True)
+            view_eta_squared_result = st.checkbox("Voir les résultats brut eta_squared")
+            if view_eta_squared_result:
+                def eta_squared(anova_groups):
+                    all_data = np.concatenate(anova_groups)
+                    grand_mean = np.mean(all_data)
+                    ss_between = sum([len(g) * (np.mean(g) - grand_mean)**2 for g in anova_groups])
+                    ss_total = sum((all_data - grand_mean)**2)
+                    return ss_between / ss_total
+            
+                @st.cache_data #ajout du caching decorator pour le chargement et affichage du test Kruskal
+                def Eta_squared() :
+                    for col in cat_cols:
+                        groups = [df_merge[df_merge[col] == val]['DistanceMetrique'].dropna() for val in df_merge[col].unique()]
+                        if len(groups) > 1:
+                            eta2 = eta_squared(groups)
+                            st.write(f"{col} → η² = {eta2:.4f}")
+                Eta_squared()
+
+    # add the link at the bottom of each page
+    st.markdown("<a href='#linkto_top'>Link to top</a>", unsafe_allow_html=True)
 
 elif page == pages[3]:
     #lecture du fichier mobilisation v2
@@ -629,12 +728,13 @@ elif page == pages[4]:
 
     st.markdown('''Notre variable cible est ResponseTime (variable additionnant le temps de mobilisation et le temps de trajet). 
                 Cette variable est numérique et continue, nous faisons donc le **choix de tester des modèles de type régression**.''')
-    st.markdown('''train-test-split avec :\
-                - Jeu de test : 20%\
-                - Application d'un random_state pour figer les jeux d'entrainement et de test pour tous les entrainements de modèles\
-                \
-                Dans un premier temps évaluation uniquement des scores pour déterminer les meilleures modèles.
-                ''')
+    texte = '''train-test-split avec :
+    - Jeu de test : 20%
+    - Application d'un random_state afin de figer les jeux d'entrainement et de test pour tous les modèles
+                
+    Dans un premier temps évaluation uniquement des scores pour déterminer les meilleures modèles.
+    '''
+    st.text(texte)
     
     #lecture du fichier pour la modélisation
     @st.cache_data #ajout du caching decorator pour le chargement du fichier
@@ -741,6 +841,79 @@ elif page == pages[4]:
     
     reglog_cont, reglin_cont, dtreg_cont, rf_reg_cont, ridge_cont, lasso_cont = load_models()
 
+    #ajout du model reduit 
+    @st.cache_data #ajout du cache decorator pour le preprocessing
+    def preprocessing_cont_red(df):
+        #conservation uniquement de distancemetrique, gpe_geo et de la variable cible
+        df_reduc = df[['DistanceMetrique', 'gpe_geo', 'ResponseTime']]
+
+        #sélection des variables explicatives et variables cibles
+        X = df_reduc.drop('ResponseTime', axis = 1)
+        y = df_reduc['ResponseTime']
+
+        #séparation en jeu d'entrainement et de test, on fixe la séparation avec le paramètre random_state
+        X_train_red, X_test_red, y_train_red, y_test_red = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        ##Adaptation du préprocessing qui ne contient pas de variable temporelles
+        #séparation des colonnes numériques et catégorielles
+        var_num = ['DistanceMetrique']
+        var_cat = ['gpe_geo']
+
+        X_train_red_num = X_train_red[var_num]
+        X_train_red_cat = X_train_red[var_cat]
+        X_test_red_num = X_test_red[var_num]
+        X_test_red_cat = X_test_red[var_cat]
+
+        #remplissage des valeurs manquantes par simple imputer avec la stratégie median pour les variables numériques et le most frequent pour les variables catégorielles
+        #gestion des données manquantes pour les variables numériques
+        imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
+        X_train_red_num = imputer_num.fit_transform(X_train_red_num)
+        X_test_red_num = imputer_num.transform(X_test_red_num)
+
+        #gestion des données manquantes pour les variables catégorielles
+        imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
+        X_train_red_cat = imputer_cat.fit_transform(X_train_red_cat)
+        X_test_red_cat = imputer_cat.transform(X_test_red_cat)
+
+        #standardisation des variables numériques avec StandardScaler
+        from sklearn.preprocessing import StandardScaler
+
+        scaler = StandardScaler()
+        X_train_red_num = scaler.fit_transform(X_train_red_num)
+        X_test_red_num = scaler.transform(X_test_red_num)
+
+        #encodage des variables catégorielles
+        from sklearn.preprocessing import OneHotEncoder
+
+        encoder = OneHotEncoder(drop = 'first', sparse_output=False)
+        X_train_red_cat = encoder.fit_transform(X_train_red_cat)
+        X_test_red_cat = encoder.transform(X_test_red_cat)
+
+        ##passage en dataframe des tableaux récupérés après encodage
+        X_train_red_num = pd.DataFrame(X_train_red_num)
+        X_test_red_num = pd.DataFrame(X_test_red_num)
+        X_train_red_cat = pd.DataFrame(X_train_red_cat)
+        X_test_red_cat = pd.DataFrame(X_test_red_cat)
+
+        #concaténation des jeux d'entraînement et de test
+        X_train_red = pd.concat([X_train_red_num, X_train_red_cat], axis=1)
+        X_test_red = pd.concat([X_test_red_num, X_test_red_cat], axis=1)
+
+        X_train_red.columns = X_train_red.columns.astype(str)
+        X_test_red.columns = X_test_red.columns.astype(str)
+
+        return X_train_red, X_test_red, y_train_red, y_test_red
+
+    #exécution de la fonction de preprocessing
+    X_train_red, X_test_red, y_train_red, y_test_red = preprocessing_cont_red(df)
+
+    #chargement des modèles
+    @st.cache_data #ajout du cache decorator pour le chargement des modeles
+    def load_models_red():
+        rfreg_cont_red = joblib.load("model_rfreg_cont_red.joblib")
+        return rfreg_cont_red
+    rfreg_cont_red = load_models_red()
+
     #chargement des scores de chaque modele
     @st.cache_data #ajout du cache decorator pour le chargement des scores de chaque modele
     def load_scores():
@@ -761,18 +934,41 @@ elif page == pages[4]:
 
         lasso_cont_score_train = lasso_cont.score(X_train, y_train)
         lasso_cont_score_test = lasso_cont.score(X_test, y_test)
+
+        rfreg_cont_red_score_train = rfreg_cont_red.score(X_train_red, y_train_red)
+        rfreg_cont_red_score_test = rfreg_cont_red.score(X_test_red, y_test_red)
+
         return reglog_cont_score_train, reglog_cont_score_test, reglin_cont_score_train, reglin_cont_score_test, dtreg_cont_score_train, dtreg_cont_score_test, \
-            rf_reg_cont_score_train, rf_reg_cont_score_test, ridge_cont_score_train, ridge_cont_score_test,lasso_cont_score_train, lasso_cont_score_test
+            rf_reg_cont_score_train, rf_reg_cont_score_test, ridge_cont_score_train, ridge_cont_score_test,lasso_cont_score_train, lasso_cont_score_test, \
+            rfreg_cont_red_score_train, rfreg_cont_red_score_test
 
     reglog_cont_score_train, reglog_cont_score_test, reglin_cont_score_train, reglin_cont_score_test, dtreg_cont_score_train, dtreg_cont_score_test, \
-            rf_reg_cont_score_train, rf_reg_cont_score_test, ridge_cont_score_train, ridge_cont_score_test,lasso_cont_score_train, lasso_cont_score_test = load_scores()
+        rf_reg_cont_score_train, rf_reg_cont_score_test, ridge_cont_score_train, ridge_cont_score_test,lasso_cont_score_train, lasso_cont_score_test,\
+            rfreg_cont_red_score_train, rfreg_cont_red_score_test = load_scores()
 
     #affichage des scores pour comparatif
-    st.data_editor([
-        {"Model Type":"Régression Logistique", "Train Score" : reglog_cont_score_train, "Test Score" : reglog_cont_score_test},
-        {"Model Type":"Régression Linéaire", "Train Score" : reglin_cont_score_train, "Test Score" : reglin_cont_score_test},
-        {"Model Type":"Decision Tree Regressor", "Train Score" : dtreg_cont_score_train, "Test Score" : dtreg_cont_score_test},
-        {"Model Type":"Random Forest Regressor", "Train Score" : rf_reg_cont_score_train, "Test Score" : rf_reg_cont_score_test},
-        {"Model Type":"Bayesian Ridge", "Train Score" : ridge_cont_score_train, "Test Score" : ridge_cont_score_test},
-        {"Model Type":"Lasso Lars", "Train Score" : lasso_cont_score_train, "Test Score" : lasso_cont_score_test}
-    ])
+    table = st.data_editor([
+        {"Modèle":"Régression Logistique", "Train Score" : reglog_cont_score_train, "Test Score" : reglog_cont_score_test},
+        {"Modèle":"Régression Linéaire", "Train Score" : reglin_cont_score_train, "Test Score" : reglin_cont_score_test},
+        {"Modèle":"Decision Tree Regressor", "Train Score" : dtreg_cont_score_train, "Test Score" : dtreg_cont_score_test},
+        {"Modèle":"Random Forest Regressor", "Train Score" : rf_reg_cont_score_train, "Test Score" : rf_reg_cont_score_test},
+        {"Modèle":"Bayesian Ridge", "Train Score" : ridge_cont_score_train, "Test Score" : ridge_cont_score_test},
+        {"Modèle":"Lasso Lars", "Train Score" : lasso_cont_score_train, "Test Score" : lasso_cont_score_test},
+        {"Modèle":"Random Forest (nb réduit de variables*)", "Train Score" : rfreg_cont_red_score_train, "Test Score" : rfreg_cont_red_score_test}
+    ], column_config={
+        "Test Score" : st.column_config.ProgressColumn(
+            "Test Score",
+            min_value=0,
+            max_value=0.8000,
+        ),
+        "Train Score": st.column_config.ProgressColumn(
+            "Train Score",
+            min_value=0,
+            max_value=0.8000,
+        ),
+    }, hide_index=True)
+    
+    st.markdown("(*)*conservation pour ce modèle uniquement des variables DistanceMetrique et gpe_geo en plus de la variable cible*")
+
+    # add the link at the bottom of each page
+    st.markdown("<a href='#linkto_top'>Link to top</a>", unsafe_allow_html=True)
