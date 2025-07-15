@@ -562,12 +562,21 @@ elif page == pages[2]:
 
         if x_axis_val == "CalYear_x" :
         
+            expander_first_year = st.expander("Cliquez pour voir l'interprétation")
+            expander_first_year.write('<div style="text-align: justify;">Le temps de réponse moyen est stable au cours des années \
+                                           et est de 350s.</div>', unsafe_allow_html=True)
+
             #nombre de mobilisation par année
             df_year = df_merge.groupby(["CalYear_x"], as_index=False).agg(count=("IncidentNumber","count"))  
             #représentation en histogramme avec plotly
             fig1 = px.histogram(df_year,x = 'CalYear_x', y='count',nbins=30, title="Nombre de mobilisations par année")
             fig1.update_layout(bargap=0.2, yaxis_title="Nombre de mobilisations", xaxis_title='Année')
             st.plotly_chart(fig1)
+
+            expander_second_year = st.expander("Cliquez pour voir l'interprétation")
+            expander_second_year.write('<div style="text-align: justify;">Baisse du nombre de mobilisations entre 2009 et 2014. Légère augmentation, \
+                                           stabilisation jusqu’en 2021 puis forte augmentation jusqu’en 2024.Entre 2019 et 2024 augmentation du nombre de \
+                                            mobilisation de 28.64%.</div>', unsafe_allow_html=True)
 
             #analyse temps moyen de mobilisation et de trajet par année
             year_travel_time = df_merge.groupby("CalYear_x")["TravelTimeSeconds"].mean()
@@ -577,7 +586,12 @@ elif page == pages[2]:
             fig2.add_trace(go.Scatter(x = year_turnout_time.index, y = year_turnout_time.values,mode='lines',name='TurnoutTimeSeconds', line=dict(color='LightBlue')))
             fig2.update_layout(title='Temps moyen de mobilisation et de trajet par année', yaxis_title='Temps moyen', xaxis_title='Année')
             st.plotly_chart(fig2)
-   
+
+            expander_third_year = st.expander("Cliquez pour voir l'interprétation")
+            expander_third_year.write('<div style="text-align: justify;">Le temps de mobilisation a baissé entre 2009 et 2012 et est resté constant depuis. \
+                                      Le temps de trajet présente plus de variabilité avec une augmentation entre 2009 et 2014 et reste relativement \
+                                      constant depuis 2014.</div>', unsafe_allow_html=True)
+
         elif x_axis_val == "month" :
 
             #analyse de la répartition des temps de mobilisation et trajet par mois
@@ -590,12 +604,28 @@ elif page == pages[2]:
                 st.plotly_chart(fig21)
             afficher_fig21()
 
+            expander_first_month = st.expander("Cliquez pour voir l'interprétation")
+            expander_first_month.write('<div style="text-align: justify;">Le temps de réponse moyen et le temps de trajet moyen par mois sont très stables. \
+                                       La répartition est également très stable sur les temps de mobilisation et de trajet avec une médiane entre \
+                                       72 et 74 secondes pour la mobilisation et 241 à 256 secondes pour le temps de trajet. On constate \
+                                       un certain nombre de valeurs extrêmes qui peuvent s’expliquer par des difficultés de traffic, de localisation de l’incident \
+                                       pour les valeurs extrêmes de trajet et pour des raisons telles que "en service à l’extérieur" ou "en exercice" pour les valeurs \
+                                       extrêmes de mobilisation. </div>', unsafe_allow_html=True)
+
         elif x_axis_val == "week" :
 
             #Répartition des temps de réponse par semaine
-            fig8 = px.box(x=df_merge['week'], y=df_merge['ResponseTime'], title='Répartition des temps de réponse par semaine')
-            fig8.update_layout(xaxis_title='Semaine', yaxis_title='Temps de réponse')
-            st.plotly_chart(fig8)
+            @st.cache_data #ajout d'un cache decorator pour le chargement de la figure 8
+            def afficher_fig8():
+                fig8 = px.box(x=df_merge['week'], y=df_merge['ResponseTime'], title='Répartition des temps de réponse par semaine')
+                fig8.update_layout(xaxis_title='Semaine', yaxis_title='Temps de réponse')
+                st.plotly_chart(fig8)
+            afficher_fig8()
+
+            expander_first_week = st.expander("Cliquez pour voir l'interprétation")
+            expander_first_week.write('<div style="text-align: justify;">Le temps de réponse moyen est très stable tout au long de l’année. \
+                                      On note tout de même une très légère baisse en fin d’année. La répartition du responsetime est également très stable \
+                                      avec une légère diminution des valeurs médiane et maximale en fin d’année.</div>', unsafe_allow_html=True)
 
         elif x_axis_val == "Day" :
         
@@ -605,6 +635,10 @@ elif page == pages[2]:
             fig9 = px.bar(x=day_response_time['Day'], y=mean, title='Temps de réponse moyen par jour de la semaine', animation_frame=day_response_time['CalYear_x'])
             fig9.update_layout(xaxis_title='Jour', yaxis_title='Temps de réponse moyen')
             st.plotly_chart(fig9)
+
+            expander_first_day = st.expander("Cliquez pour voir l'interprétation")
+            expander_first_day.write('<div style="text-align: justify;">Les pompiers interviennent plus rapidement le dimanche que les autres jours de la semaine, \
+                                      probablement dû à un trafic routier réduit.</div>', unsafe_allow_html=True)
 
         elif x_axis_val == "HourOfCall_x" :
         
@@ -616,6 +650,10 @@ elif page == pages[2]:
                 animation_frame = hour_response_time["CalYear_x"])
             fig11.update_layout(xaxis_title='Heure', yaxis_title='Temps de réponse')
             st.plotly_chart(fig11)
+
+            expander_first_hour = st.expander("Cliquez pour voir l'interprétation")
+            expander_first_hour.write('<div style="text-align: justify;">Le temps de réponse moyen est fonction de l’heure de la journée, \
+                                      avec un temps de réponse minimum à 22h (330s).</div>', unsafe_allow_html=True)
 
     if second.toggle("Visualisation :fire_engine:") :
         st.markdown(":blue-background[Analyse par type d'incident] :fire_engine:")
@@ -637,12 +675,24 @@ elif page == pages[2]:
         fig13.update_layout(xaxis_title='CalYear',yaxis_title='Mean ResponseTime')
         st.plotly_chart(fig13)
 
+        expander_first_incident = st.expander("Cliquez pour voir l'interprétation")
+        expander_first_incident.write('<div style="text-align: justify;">Nombre très important de fausses alertes. Ces fausses alertes regroupent les appels de bonne foi \
+                                      ainsi que les appels malveillants. \n \
+                                      Le temps de réponse moyen est similaire pour les différentes catégories d’incidents.</div>', unsafe_allow_html=True)
+
+        st.write("\n \n ")
+
         #affichage du nombre d'intervention par type d'incident dans le groupe 'Special Service' et par année
         fig14 = plt.figure(figsize=(10,5))
         sns.countplot(x = df_merge['SpecialServiceType'], hue = df_merge['CalYear_x'], palette="Spectral")
         plt.title("Nombre d'incident par groupe d'incident Special Service")
         plt.xticks(rotation=90)
         st.pyplot(fig14)
+
+        expander_second_incident = st.expander("Cliquez pour voir l'interprétation")
+        expander_second_incident.write('<div style="text-align: justify;">Les types d’interventions majoritaires sont Effecting entry/exit, RTC, Flooding. \
+                Sur les années plus récentes on remarque également les types Assist other agencies et no action. Le nombre important de catégories dans cette variable \
+                imposera peut-être de ne pas la garder ou de la transformer pour la modélisation.</div>', unsafe_allow_html=True)
 
     if third.toggle("Visualisation :globe_with_meridians:") :
         st.markdown(":blue-background[Analyses en lien avec des variables géographique] :globe_with_meridians:")
@@ -654,6 +704,11 @@ elif page == pages[2]:
         fig15 = px.density_heatmap(df_merge, x='CalYear_x', y='gpe_geo', z='IncidentNumber',histfunc='count', color_continuous_scale='dense')
         fig15.update_layout(title="Nombre de mobilisations par groupe géographique par année", xaxis_title='Year',yaxis_title='gpe_geo')
         st.plotly_chart(fig15)
+
+        expander_first_geo = st.expander("Cliquez pour voir l'interprétation")
+        expander_first_geo.write('<div style="text-align: justify;">Le nombre de mobilisations est plus important à l’ouest et particulièrement au nord ouest. \
+                                 On constate une baisse significative des interventions en 2015 toutes zones confondues puis une augmentation constante à partir \
+                                    de 2015.</div>', unsafe_allow_html=True)
 
         #Responsetime moyen par groupe géographique et par année
         df_merge_geo_resptim = df_merge.groupby(["gpe_geo","CalYear_x"], as_index=False).agg(
@@ -674,6 +729,14 @@ elif page == pages[2]:
         fig20.update_layout(margin=dict(t=50, l=25, r=25, b=25), title="Répartition du nombre d'incident et du temps de réponse moyen par quartier")
         st.plotly_chart(fig20)
 
+        expander_second_geo = st.expander("Cliquez pour voir l'interprétation")
+        expander_second_geo.write('<div style="text-align: justify;">Le temps de réponse moyen est similaire pour toutes les zones géographiques. \
+                                  On constate une légère différence sur la zone ouest entre le nord et le sud, le temps de réponse moyen au sud étant \
+                                  légèrement plus bas, ce qui peu s’expliquer par un nombre de mobilisation plus important au nord. \n \
+                                  En revanche le temps de réponse moyen au nord-est est plus important qu’au sud-ouest malgré un nombre de mobilisation \
+                                  moins important. Ceci peut s’expliquer par un nombre de stations plus important au sud qu’au nord.</div>', unsafe_allow_html=True)
+        expander_second_geo.image("nombre_stations.png")
+
         #visualisation de distancemetrique vs responsetime avec plotly express
         @st.cache_data #ajout du caching decorator pour le chargement du graph
         def afficher_fig17():
@@ -681,6 +744,13 @@ elif page == pages[2]:
             plt.title("DistanceMetrique vs ResponseTime")
             st.pyplot(fig17)
         afficher_fig17()
+
+        expander_third_geo = st.expander("Cliquez pour voir l'interprétation")
+        expander_third_geo.write('<div style="text-align: justify;">Ce graphique qui affiche la distance en fonction du temps de réponse moyen montre qu’il y a \
+                                 3 catégories distinctes de temps d’intervention : entre 0 et 200s les distances d’intervention sont comprises entre 0 et 2km \
+                                 et pas de relation directe avec le temps d’intervention, idem entre 600 et 1200s. Entre 200s et 600s on observe une relation \
+                                 proportionnelle entre le temps de réponse et la distance entre le lieu de l’incident et la station de \
+                                 pompiers.</div>', unsafe_allow_html=True)
 
     if fourth.toggle("Visualisation :fire_extinguisher:"):
         st.markdown(":blue-background[Autres analyses] :fire_extinguisher:")
@@ -693,6 +763,11 @@ elif page == pages[2]:
         fig18.update_layout(title="Nombre d'incident par type d'adresse", xaxis_title='AddressQualifier',yaxis_title='count')
         st.plotly_chart(fig18)
         
+        expander_first_autre = st.expander("Cliquez pour voir l'interprétation")
+        expander_first_autre.write('<div style="text-align: justify;">Les catégories les plus représentées sont ‘Correct location’ et ‘Within same building’. \
+                                   Nous pourrons créer une nouvelle variable “AdressQualifier_bis” dans laquelle nous garderons ces deux catégories et \
+                                   rassemblerons toutes les autres dans une variable ‘other’.</div>', unsafe_allow_html=True)
+
         #Analyse du nombre de stations mobilisées par année
         df_merge_year = df_merge.groupby(["CalYear_x"], as_index=False).agg(
             count=("DeployedFromStation_Name","nunique"))
@@ -700,6 +775,10 @@ elif page == pages[2]:
         fig19 = px.bar(x=df_merge_year['CalYear_x'], y=df_merge_year['count'])
         fig19.update_layout(title="Nombre de stations mobilisées par année", xaxis_title='CalYear',yaxis_title='count')
         st.plotly_chart(fig19)
+
+        expander_second_autre = st.expander("Cliquez pour voir l'interprétation")
+        expander_second_autre.write('<div style="text-align: justify;">Très légère baisse du nombre de stations mobilisées sur les dernières années. \
+                                    A partir de 2015, il y aura 8 stations en moins.</div>', unsafe_allow_html=True)
 
     if fifth.toggle("Visualisation :chart:") :
         st.markdown(":blue-background[Test de corrélation] :chart:")
@@ -755,7 +834,8 @@ elif page == pages[2]:
             cat_cols = ['DeployedFromLocation', 'PlusCode_Description', 'Day', 'IncidentGroup', 'PropertyCategory', 'AddressQualifier', 'gpe_geo']
 
             st.markdown("**Test Kruskal**")
-            st.write('<div style="text-align: justify;">Idem que pour l’Anova, toutes les variables testées sauf DeployedFromLocation apparaissent comme ayant un effet significatif\
+            st.write('<div style="text-align: justify;">Le test de Kruskal-Wallis ne nécessite pas la normalité des données ni l’homogénéité des variances. \
+                     Idem que pour l’Anova, toutes les variables testées sauf DeployedFromLocation apparaissent comme ayant un effet significatif\
                       avec la variable cible ResponseTime. Afin de connaitre la contribution relative de chaque variable au modèle, on utilise l’eta squared</div>', unsafe_allow_html=True)
             view_Kruskal_result = st.checkbox("Voir les résultats brut Kruskal")
             if view_Kruskal_result:
@@ -773,7 +853,8 @@ elif page == pages[2]:
             st.markdown(":blue-background[------------------------------------------------------------------------------------------------------------------------------------------]",width="content")
             
             st.markdown("**Test Eta squared**")
-            st.write('<div style="text-align: justify;">Une valeur η² > 0.01 est considérée faible, > 0.06 est moyenne, > 0.14 est forte. \
+            st.write('<div style="text-align: justify;">Afin de connaître la contribution relative de chaque variable au modèle, on utilise l’eta squared. \
+                     Une valeur η² > 0.01 est considérée faible, > 0.06 est moyenne, > 0.14 est forte. \
                      Ici toutes nos variables sont < 0.01 et donc non significatives.</div>', unsafe_allow_html=True)
             view_eta_squared_result = st.checkbox("Voir les résultats brut eta_squared")
             if view_eta_squared_result:
@@ -970,12 +1051,17 @@ elif page == pages[4]:
     from sklearn.preprocessing import FunctionTransformer
 
     st.markdown('''Notre variable cible est ResponseTime (variable additionnant le temps de mobilisation et le temps de trajet). 
-                Cette variable est numérique et continue, nous faisons donc le **choix de tester des modèles de type régression**.''')
+                Cette variable est numérique et continue, nous faisons donc le **choix de tester des modèles de type régression** pour une première approche de modélisation.''')
+    
+    st.markdown('''Dans un second temps nous verrons une autre approche conditionnée par les premiers résultats obtenus.''')
+    st.markdown(":blue-background[------------------------------------------------------------------------------------------------------------------------------------------]",width="content")
+            
+    st.markdown("**Paramètres de la première itération :**")
     texte = '''train-test-split avec :
     - Jeu de test : 20%
     - Application d'un random_state afin de figer les jeux d'entrainement et de test pour tous les modèles
                 
-    Dans un premier temps évaluation uniquement des scores pour déterminer les meilleures modèles.
+    Dans un premier temps évaluation uniquement des scores pour déterminer les meilleurs modèles.
     '''
     st.text(texte)
     
@@ -987,19 +1073,424 @@ elif page == pages[4]:
     
     df = load_data_final("Dataset_Final.csv")
 
-    @st.cache_data #ajout du cache decorator pour le preprocessing
-    def preprocessing_cont(df):
-        #remplacement des noms des jours de la variable Day par les chiffres correspondant pour faciliter l'encodage des variables temporelles
-        df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
+    ###
+    #1ère itération
+    ###
+    #@st.cache_data #ajout du cache decorator pour le preprocessing
+    #def preprocessing_cont(df):
+    #    #remplacement des noms des jours de la variable Day par les chiffres correspondant pour faciliter l'encodage des variables temporelles
+    #    df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
 
-        #sélection des variables explicatives et variables cibles
-        X = df.drop('ResponseTime', axis = 1)
-        y = df['ResponseTime']
+    #    #sélection des variables explicatives et variables cibles
+    #    X = df.drop('ResponseTime', axis = 1)
+    #    y = df['ResponseTime']
 
         #séparation en jeu d'entrainement et de test, on fixe la séparation avec le paramètre random_state
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    #    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
         ##Préprocessing
+        #séparation des colonnes numériques et catégorielles
+    #    var_num = ['NumCalls', 'DistanceMetrique']
+    #    var_cat = ['CalYear','DeployedFromLocation', 'PlusCode_Description', 'IncidentGroup', 'gpe_geo', 'PropertyCategory_bis', 'AddressQualifier_bis']
+    #    var_time = ['HourOfCall', 'week', 'month', 'Day']
+
+    #    X_train_num = X_train[var_num]
+    #    X_train_cat = X_train[var_cat]
+    #    X_train_time = X_train[var_time]
+    #    X_test_num = X_test[var_num]
+    #    X_test_cat = X_test[var_cat]
+    #    X_test_time = X_test[var_time]
+
+        #gestion des variables temps avec sinus et cosinus (variable cyclique)
+    #    def sin_transformer(period):
+    #        return FunctionTransformer(lambda x: np.sin(x / period * 2 * np.pi))
+
+    #    def cos_transformer(period):
+    #        return FunctionTransformer(lambda x: np.cos(x / period * 2 * np.pi))
+
+    #    for var in X_train_time :
+    #        X_train_time[var + '_sin'] = sin_transformer(24).fit_transform(X_train_time[var])
+    #        X_train_time[var + '_cos'] = cos_transformer(24).fit_transform(X_train_time[var])
+    #        X_train_time = X_train_time.drop(var, axis=1)
+
+    #    for var in X_test_time :
+    #        X_test_time[var + '_sin'] = sin_transformer(24).fit_transform(X_test_time[var])
+    #        X_test_time[var + '_cos'] = cos_transformer(24).fit_transform(X_test_time[var])
+    #        X_test_time = X_test_time.drop(var, axis=1)
+
+    #        X_train_time.reset_index(drop=True, inplace=True)
+    #        X_test_time.reset_index(drop=True, inplace=True)
+
+        #remplissage des valeurs manquantes par simple imputer avec la stratégie median pour les variables numériques et le most frequent pour les variables catégorielles
+        #gestion des données manquantes pour les variables numériques
+    #    imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
+    #    X_train_num = imputer_num.fit_transform(X_train_num)
+    #    X_test_num = imputer_num.transform(X_test_num)
+
+        #gestion des données manquantes pour les variables catégorielles
+    #    imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
+    #    X_train_cat = imputer_cat.fit_transform(X_train_cat)
+    #    X_test_cat = imputer_cat.transform(X_test_cat)
+
+        #standardisation des variables numériques avec StandardScaler
+    #    scaler = StandardScaler()
+    #    X_train_num = scaler.fit_transform(X_train_num)
+    #    X_test_num = scaler.transform(X_test_num)
+
+        #encodage des variables catégorielles
+    #    encoder = OneHotEncoder(drop = 'first', sparse_output=False)
+    #    X_train_cat = encoder.fit_transform(X_train_cat)
+    #    X_test_cat = encoder.transform(X_test_cat)
+
+        ##passage en dataframe des tableaux récupérés après encodage
+    #    X_train_num = pd.DataFrame(X_train_num)
+    #    X_test_num = pd.DataFrame(X_test_num)
+    #    X_train_cat = pd.DataFrame(X_train_cat)
+    #    X_test_cat = pd.DataFrame(X_test_cat)
+
+        #concaténation des jeux d'entraînement et de test
+    #    X_train = pd.concat([X_train_num, X_train_cat, X_train_time], axis=1)
+    #    X_test = pd.concat([X_test_num, X_test_cat, X_test_time], axis=1)
+
+    #    X_train.columns = X_train.columns.astype(str)
+    #    X_test.columns = X_test.columns.astype(str)
+
+    #    return X_train, y_train, X_test, y_test
+
+    #exécution de la fonction de preprocessing
+    #X_train, y_train, X_test, y_test = preprocessing_cont(df)
+
+    #chargement des modèles
+    #@st.cache_data #ajout du cache decorator pour le chargement des modeles
+    #def load_models():
+    #    reglog_cont = joblib.load("model_reglog_cont")
+    #    reglin_cont = joblib.load("model_reglin_cont")
+    #    dtreg_cont = joblib.load("model_dtreg_cont")
+    #    rf_reg_cont = joblib.load("model_rfreg_cont.joblib")
+    #    ridge_cont = joblib.load("model_ridge_cont")
+    #    lasso_cont = joblib.load("model_lasso_cont")
+    #    return reglog_cont, reglin_cont, dtreg_cont, rf_reg_cont, ridge_cont, lasso_cont
+    
+    #reglog_cont, reglin_cont, dtreg_cont, rf_reg_cont, ridge_cont, lasso_cont = load_models()
+
+    #ajout du model reduit 
+    #@st.cache_data #ajout du cache decorator pour le preprocessing
+    #def preprocessing_cont_red(df):
+        #conservation uniquement de distancemetrique, gpe_geo et de la variable cible
+    #    df_reduc = df[['DistanceMetrique', 'gpe_geo', 'ResponseTime']]
+
+        #sélection des variables explicatives et variables cibles
+    #    X = df_reduc.drop('ResponseTime', axis = 1)
+    #    y = df_reduc['ResponseTime']
+
+        #séparation en jeu d'entrainement et de test, on fixe la séparation avec le paramètre random_state
+    #    X_train_red, X_test_red, y_train_red, y_test_red = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        ##Adaptation du préprocessing qui ne contient pas de variable temporelles
+        #séparation des colonnes numériques et catégorielles
+    #    var_num = ['DistanceMetrique']
+    #    var_cat = ['gpe_geo']
+
+    #    X_train_red_num = X_train_red[var_num]
+    #    X_train_red_cat = X_train_red[var_cat]
+    #    X_test_red_num = X_test_red[var_num]
+    #    X_test_red_cat = X_test_red[var_cat]
+
+        #remplissage des valeurs manquantes par simple imputer avec la stratégie median pour les variables numériques et le most frequent pour les variables catégorielles
+        #gestion des données manquantes pour les variables numériques
+    #    imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
+    #    X_train_red_num = imputer_num.fit_transform(X_train_red_num)
+    #    X_test_red_num = imputer_num.transform(X_test_red_num)
+
+        #gestion des données manquantes pour les variables catégorielles
+    #    imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
+    #    X_train_red_cat = imputer_cat.fit_transform(X_train_red_cat)
+    #    X_test_red_cat = imputer_cat.transform(X_test_red_cat)
+
+        #standardisation des variables numériques avec StandardScaler
+    #    from sklearn.preprocessing import StandardScaler
+
+    #    scaler = StandardScaler()
+    #    X_train_red_num = scaler.fit_transform(X_train_red_num)
+    #    X_test_red_num = scaler.transform(X_test_red_num)
+
+        #encodage des variables catégorielles
+    #    from sklearn.preprocessing import OneHotEncoder
+
+    #    encoder = OneHotEncoder(drop = 'first', sparse_output=False)
+    #    X_train_red_cat = encoder.fit_transform(X_train_red_cat)
+    #    X_test_red_cat = encoder.transform(X_test_red_cat)
+
+        ##passage en dataframe des tableaux récupérés après encodage
+    #    X_train_red_num = pd.DataFrame(X_train_red_num)
+    #    X_test_red_num = pd.DataFrame(X_test_red_num)
+    #    X_train_red_cat = pd.DataFrame(X_train_red_cat)
+    #    X_test_red_cat = pd.DataFrame(X_test_red_cat)
+
+        #concaténation des jeux d'entraînement et de test
+    #    X_train_red = pd.concat([X_train_red_num, X_train_red_cat], axis=1)
+    #    X_test_red = pd.concat([X_test_red_num, X_test_red_cat], axis=1)
+
+    #    X_train_red.columns = X_train_red.columns.astype(str)
+    #    X_test_red.columns = X_test_red.columns.astype(str)
+
+    #    return X_train_red, X_test_red, y_train_red, y_test_red
+
+    #exécution de la fonction de preprocessing
+    #X_train_red, X_test_red, y_train_red, y_test_red = preprocessing_cont_red(df)
+
+    #chargement des modèles
+    #@st.cache_data #ajout du cache decorator pour le chargement des modeles
+    #def load_models_red():
+    #    rfreg_cont_red = joblib.load("model_rfreg_cont_red.joblib")
+    #    return rfreg_cont_red
+    #rfreg_cont_red = load_models_red()
+
+    #chargement des scores de chaque modele
+    #@st.cache_data #ajout du cache decorator pour le chargement des scores de chaque modele
+    #def load_scores():
+    #    reglog_cont_score_train = reglog_cont.score(X_train, y_train)
+    #    reglog_cont_score_test = reglog_cont.score(X_test, y_test)
+    
+    #    reglin_cont_score_train = reglin_cont.score(X_train, y_train)
+    #    reglin_cont_score_test = reglin_cont.score(X_test, y_test)
+
+    #    dtreg_cont_score_train = dtreg_cont.score(X_train, y_train)
+    #    dtreg_cont_score_test = dtreg_cont.score(X_test,y_test)
+
+    #    rf_reg_cont_score_train = rf_reg_cont.score(X_train, y_train)
+    #    rf_reg_cont_score_test = rf_reg_cont.score(X_test, y_test)
+
+    #    ridge_cont_score_train = ridge_cont.score(X_train, y_train)
+    #    ridge_cont_score_test = ridge_cont.score(X_test, y_test)
+
+    #    lasso_cont_score_train = lasso_cont.score(X_train, y_train)
+    #    lasso_cont_score_test = lasso_cont.score(X_test, y_test)
+
+    #    rfreg_cont_red_score_train = rfreg_cont_red.score(X_train_red, y_train_red)
+    #    rfreg_cont_red_score_test = rfreg_cont_red.score(X_test_red, y_test_red)
+
+    #    return reglog_cont_score_train, reglog_cont_score_test, reglin_cont_score_train, reglin_cont_score_test, dtreg_cont_score_train, dtreg_cont_score_test, \
+    #        rf_reg_cont_score_train, rf_reg_cont_score_test, ridge_cont_score_train, ridge_cont_score_test,lasso_cont_score_train, lasso_cont_score_test, \
+    #        rfreg_cont_red_score_train, rfreg_cont_red_score_test
+
+    #reglog_cont_score_train, reglog_cont_score_test, reglin_cont_score_train, reglin_cont_score_test, dtreg_cont_score_train, dtreg_cont_score_test, \
+    #    rf_reg_cont_score_train, rf_reg_cont_score_test, ridge_cont_score_train, ridge_cont_score_test,lasso_cont_score_train, lasso_cont_score_test,\
+    #        rfreg_cont_red_score_train, rfreg_cont_red_score_test = load_scores()
+
+    #affichage des scores pour comparatif
+    results = st.button("Voir les résultats")
+    if results :   
+        table = st.data_editor([
+            {"Modèle":"Régression Logistique", "Train Score" : 0.0148575, "Test Score" : 0.01379},
+            {"Modèle":"Régression Linéaire", "Train Score" : 0.3598207230643351, "Test Score" : 0.3734535247570542},
+            {"Modèle":"Decision Tree Regressor", "Train Score" : 0.9943303207331452, "Test Score" : -0.30552860823162686},
+            {"Modèle":"Random Forest Regressor", "Train Score" : 0.9080998516734331, "Test Score" : 0.37704681657937933},
+            {"Modèle":"Bayesian Ridge", "Train Score" : 0.3598201910327483, "Test Score" : 0.3734462383423547},
+            {"Modèle":"Lasso Lars", "Train Score" : 0.3593327181107804, "Test Score" : 0.3727512314308593},
+            {"Modèle":"Random Forest (nb réduit de variables*)", "Train Score" : 0.576147195832603, "Test Score" : 0.39160453480266266}
+        ], column_config={
+            "Test Score" : st.column_config.ProgressColumn(
+                "Test Score",
+                min_value=0,
+                max_value=0.8000,
+            ),
+            "Train Score": st.column_config.ProgressColumn(
+                "Train Score",
+                min_value=0,
+                max_value=0.8000,
+            ),
+        }, hide_index=True)
+
+        st.markdown("(*)*conservation pour ce modèle uniquement des variables DistanceMetrique et gpe_geo en plus de la variable cible*")
+
+    expander_first_iteration = st.expander("Cliquez pour voir l'interprétation")
+    expander_first_iteration.write('<div style="text-align: justify;">Les résultats globaux des scores sur ce premier entrainement de modèles n’est pas concluant, \
+                                   y compris en améliorant les paramètres.\n \
+                                   Nous constatons sur le modèle RandomForestRegressor que la réduction du nombre de variable \
+                                   en ne gardant que celles potentiellement les plus impactantes ne permet pas d’améliorer le score et notamment dégrade le score d’entraînement.\
+                                   Nous pouvons en déduire qu’il est nécessaire d’avoir un certain nombre de variables explicatives pour entraîner \
+                                   au mieux le modèle. \n \
+                                   Il va être nécessaire d’envisager une nouvelle approche.</div>', unsafe_allow_html=True)
+    st.markdown(":blue-background[------------------------------------------------------------------------------------------------------------------------------------------]",width="content")
+            
+    ###
+    #ajout des modelisations avec réduction du jeu de données, split
+    ###
+    ##test avec réduction du jeu de données resptime >200
+    #application du filtre sur le jeu de données
+    #df200 = df.sample(500000, replace=False)
+    #df200 = df200[df200["ResponseTime"] >= 200]
+    #df200.dropna(subset=['ResponseTime'], inplace=True)
+
+    #exécution de la fonction de preprocessing
+    #X_train_200, y_train_200, X_test_200, y_test_200 = preprocessing_cont(df200)
+
+    #chargement des modèles
+    #@st.cache_data #ajout du cache decorator pour le chargement des modeles
+    #def load_models_200():
+    #    Random_Forest_200 = joblib.load("model_RandomForest_200.joblib")
+    #    Ridge_200 = joblib.load("model_Ridge_200")
+    #    Lasso_200 = joblib.load("model_Lasso_200")
+    #    return Random_Forest_200, Ridge_200, Lasso_200
+    #Random_Forest_200, Ridge_200, Lasso_200 = load_models_200()
+
+    ##test avec réduction du jeu de données resptime <600
+    #application du filtre sur le jeu de données
+    #df600 = df.sample(500000, replace=False)
+    #df600 = df600[df600["ResponseTime"] <= 600]
+    #df600.dropna(subset=['ResponseTime'], inplace=True)
+
+    #exécution de la fonction de preprocessing
+    #X_train_600, y_train_600, X_test_600, y_test_600 = preprocessing_cont(df600)
+
+    #chargement des modèles
+    #@st.cache_data #ajout du cache decorator pour le chargement des modeles
+    #def load_models_600():
+    #    Random_Forest_600 = joblib.load("model_RandomForest_600.joblib")
+    #    Ridge_600 = joblib.load("model_Ridge_600")
+    #    Lasso_600 = joblib.load("model_Lasso_600")
+    #    return Random_Forest_600, Ridge_600, Lasso_600
+    #Random_Forest_600, Ridge_600, Lasso_600 = load_models_600()
+
+    ##test avec réduction du jeu de données resptime entre 200 et 600
+    #application du filtre sur le jeu de données
+    #df200_600 = df.sample(500000, replace=False)
+    #df200_600 = df200_600[(df200_600["ResponseTime"] >= 200) & (df200_600["ResponseTime"] <=600)]
+    #df200_600.dropna(subset=['ResponseTime'], inplace=True)
+
+    #exécution de la fonction de preprocessing
+    #X_train_200_600, y_train_200_600, X_test_200_600, y_test_200_600 = preprocessing_cont(df200_600)
+
+    #chargement des modèles
+    #@st.cache_data #ajout du cache decorator pour le chargement des modeles
+    #def load_models_200_600():
+    #    Random_Forest_200_600 = joblib.load("model_RandomForest_200-600.joblib")
+    #    Ridge_200_600 = joblib.load("model_Ridge_200-600")
+    #    Lasso_200_600 = joblib.load("model_Lasso_200-600")
+    #    return Random_Forest_200_600, Ridge_200_600, Lasso_200_600
+    #Random_Forest_200_600, Ridge_200_600, Lasso_200_600 = load_models_200_600()
+
+    ##chargement des scores des différents modeles
+    #@st.cache_data #ajout du cache decorator pour le chargement des scores de chaque modele
+    #def load_scores_split():
+    #    Random_Forest_200_score_train = Random_Forest_200.score(X_train_200, y_train_200)
+    #    Random_Forest_200_score_test = Random_Forest_200.score(X_test_200, y_test_200)
+    #
+    #    Ridge_200_score_train = Ridge_200.score(X_train_200, y_train_200)
+    #    Ridge_200_score_test = Ridge_200.score(X_test_200, y_test_200)
+    #
+    #    Lasso_200_score_train = Lasso_200.score(X_train_200, y_train_200)
+    #    Lasso_200_score_test = Lasso_200.score(X_test_200,y_test_200)
+    #
+    #    Random_Forest_600_score_train = Random_Forest_600.score(X_train_600, y_train_600)
+    #    Random_Forest_600_score_test = Random_Forest_600.score(X_test_600, y_test_600)
+    #
+    #    Ridge_600_score_train = Ridge_600.score(X_train_600, y_train_600)
+    #    Ridge_600_score_test = Ridge_600.score(X_test_600, y_test_600)
+    #
+    #    Lasso_600_score_train = Lasso_600.score(X_train_600, y_train_600)
+    #    Lasso_600_score_test = Lasso_600.score(X_test_600, y_test_600)
+    #
+    #    Random_Forest_200_600_score_train = Random_Forest_200_600.score(X_train_200_600, y_train_200_600)
+    #    Random_Forest_200_600_score_test = Random_Forest_200_600.score(X_test_200_600, y_test_200_600)
+    #
+    #    Ridge_200_600_score_train = Ridge_200_600.score(X_train_200_600, y_train_200_600)
+    #    Ridge_200_600_score_test = Ridge_200_600.score(X_test_200_600, y_test_200_600)
+    #
+    #    Lasso_200_600_score_train = Lasso_200_600.score(X_train_200_600, y_train_200_600)
+    #    Lasso_200_600_score_test = Lasso_200_600.score(X_test_200_600, y_test_200_600)
+    #
+    #    return Random_Forest_200_score_train, Random_Forest_200_score_test, Ridge_200_score_train, Ridge_200_score_test, Lasso_200_score_train, Lasso_200_score_test, \
+    #        Random_Forest_600_score_train, Random_Forest_600_score_test, Ridge_600_score_train, Ridge_600_score_test,Lasso_600_score_train, Lasso_600_score_test, \
+    #        Random_Forest_200_600_score_train, Random_Forest_200_600_score_test, Ridge_200_600_score_train, Ridge_200_600_score_test, Lasso_200_600_score_train, \
+    #        Lasso_200_600_score_test
+
+    #Random_Forest_200_score_train, Random_Forest_200_score_test, Ridge_200_score_train, Ridge_200_score_test, Lasso_200_score_train, Lasso_200_score_test, \
+    #    Random_Forest_600_score_train, Random_Forest_600_score_test, Ridge_600_score_train, Ridge_600_score_test,Lasso_600_score_train, Lasso_600_score_test,\
+    #        Random_Forest_200_600_score_train, Random_Forest_200_600_score_test, Ridge_200_600_score_train, Ridge_200_600_score_test, Lasso_200_600_score_train, \
+    #            Lasso_200_600_score_test  = load_scores_split()
+
+    st.markdown("**Paramètres de la seconde itération :**")
+    st.markdown('<div style="text-align: justify;">Afin d’améliorer notre score de test, nous avons testé une nouvelle approche : ne conserver que les données ayant un ResponseTime de plus de 200s, \
+                inférieur à 600s ou compris entre 200 et 600s. \n \
+                En se basant sur le graphique montrant la distance métrique en fonction du temps de réponse on observe 3 profils de réponses distinctes, \
+                l’idée étant d’exclure les données montrant un bruit élevé dans l’optique d’améliorer la prédiction du temps de réponse.</div>', unsafe_allow_html=True)
+    graph = st.expander("Voir le graphique")
+    graph.image("distancemetrique_vs_responsetime.png")
+    
+    #affichage des scores pour comparatif
+    results_split = st.button("Voir les résultats avec le split")
+    if results_split :
+        table_split = st.data_editor([
+            {"Modèle":"Random Forest", "ResponseTime>200" : 0.3853, "ResponseTime<600" : 0.4445,"ResponseTime>200 et <600" : 0.3825 },
+            {"Modèle":"Ridge", "ResponseTime>200" : 0.3422, "ResponseTime<600" : 0.3865, "ResponseTime>200 et <600" : 0.3391},
+            {"Modèle":"Lasso", "ResponseTime>200" : 0.3422, "ResponseTime<600" : 0.3865, "ResponseTime>200 et <600" : 0.3391},
+        ], column_config={
+            "ResponseTime>200" : st.column_config.ProgressColumn(
+                "ResponseTime>200",
+                min_value=0,
+                max_value=0.8000,
+            ),
+            "ResponseTime<600": st.column_config.ProgressColumn(
+                "ResponseTime<600",
+                min_value=0,
+                max_value=0.8000,
+            ),
+            "ResponseTime>200 et <600": st.column_config.ProgressColumn(
+                "ResponseTime>200 et <600",
+                min_value=0,
+                max_value=0.8000,
+            )
+        }, hide_index=True)
+
+    interpretation_second_iteration = st.toggle("Cliquez pour voir l'interprétation")
+    if interpretation_second_iteration:
+        st.write('<div style="text-align: justify;">L’exclusion des données avec un ResponseTime, bien qu’ayant amélioré la prédiction \
+                                    ne permet pas d’atteindre un score correct et une autre approche doit être mise en place pour y parvenir.</div>', unsafe_allow_html=True)
+
+    st.markdown(":blue-background[------------------------------------------------------------------------------------------------------------------------------------------]",width="content")
+            
+    ###
+    #2nd itération avec split en plusieurs catégories
+    ###
+
+    #importation des packages pour la modelisation
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import FunctionTransformer
+    from sklearn.impute import SimpleImputer
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.preprocessing import OneHotEncoder
+    from sklearn.preprocessing import LabelEncoder
+    from sklearn.metrics import classification_report
+
+    st.markdown("**Paramètres de la seconde itération, 2ème partie :**")
+    st.markdown('<div style="text-align: justify;">Nous allons séparer notre variable cible en catégories. Nous choisissons d’effectuer ce découpage en suivant \
+                les informations données par le graphique déjà utilisé pour la réduction du jeu de données.</div>', unsafe_allow_html=True)
+    st.write("\n")
+    st.markdown(":blue[Détermination du nombre de catégories]\n")
+    st.markdown("Sur la base du graphique DistanceMetrique vs ResponseTime, nous pouvons déterminer comment séparer la variable cible.")
+    graphs = st.expander("Voir les graphiques ")
+    graphs.image("distance_responsetime_200.png", caption="ResponseTime < 200")
+    graphs.image("distance_responsetime_200-600.png", caption="200>ResponseTime>600")
+    graphs.image("distance_responsetime_600.png", caption="ResponseTime > 600")
+
+    #split en 3 categories
+    @st.cache_data #ajout du cache decorator pour le preprocessing
+    def preprocessing_3cat(df):
+        #remplacement des noms des jours de la variable Day par les chiffres correspondant
+        df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
+        #ajout d'une colonne ResponseTime_cat pour séparer la variable ResponseTime en trois catégories
+        bin = [0,200,600,1200]
+        label = ['short', 'medium', 'long']
+        df['ResponseTime_cat'] = pd.cut(df['ResponseTime'], bins=bin, labels=label)
+        #suppression de la variable responseTime
+        df = df.drop('ResponseTime', axis=1)
+        #sélection des variables explicatives et variables cibles
+        X = df.drop('ResponseTime_cat', axis = 1)
+        y = df['ResponseTime_cat']
+        #séparation en jeu d'entrainement et de test
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         #séparation des colonnes numériques et catégorielles
         var_num = ['NumCalls', 'DistanceMetrique']
         var_cat = ['CalYear','DeployedFromLocation', 'PlusCode_Description', 'IncidentGroup', 'gpe_geo', 'PropertyCategory_bis', 'AddressQualifier_bis']
@@ -1029,8 +1520,8 @@ elif page == pages[4]:
             X_test_time[var + '_cos'] = cos_transformer(24).fit_transform(X_test_time[var])
             X_test_time = X_test_time.drop(var, axis=1)
 
-            X_train_time.reset_index(drop=True, inplace=True)
-            X_test_time.reset_index(drop=True, inplace=True)
+        X_train_time.reset_index(drop=True, inplace=True)
+        X_test_time.reset_index(drop=True, inplace=True)
 
         #remplissage des valeurs manquantes par simple imputer avec la stratégie median pour les variables numériques et le most frequent pour les variables catégorielles
         #gestion des données manquantes pour les variables numériques
@@ -1066,152 +1557,518 @@ elif page == pages[4]:
         X_train.columns = X_train.columns.astype(str)
         X_test.columns = X_test.columns.astype(str)
 
-        return X_train, y_train, X_test, y_test
+         #encodage de la variable cible ResponseTime_cat dans l'ordre short, medium, long
+        le = LabelEncoder()
+        y_train = le.fit_transform(y_train)
+        y_test = le.transform(y_test)
 
-    #exécution de la fonction de preprocessing
-    X_train, y_train, X_test, y_test = preprocessing_cont(df)
+        return X_train, X_test, y_train, y_test
+    X_train_3cat, X_test_3cat, y_train_3cat, y_test_3cat = preprocessing_3cat(df)
 
     #chargement des modèles
     @st.cache_data #ajout du cache decorator pour le chargement des modeles
-    def load_models():
-        reglog_cont = joblib.load("model_reglog_cont")
-        reglin_cont = joblib.load("model_reglin_cont")
-        dtreg_cont = joblib.load("model_dtreg_cont")
-        rf_reg_cont = joblib.load("model_rfreg_cont.joblib")
-        ridge_cont = joblib.load("model_ridge_cont")
-        lasso_cont = joblib.load("model_lasso_cont")
-        return reglog_cont, reglin_cont, dtreg_cont, rf_reg_cont, ridge_cont, lasso_cont
-    
-    reglog_cont, reglin_cont, dtreg_cont, rf_reg_cont, ridge_cont, lasso_cont = load_models()
+    def load_3cat():
+        reglog_3cat = joblib.load("model_reglog_3cat")
+        dtc_3cat = joblib.load("model_dtc_3cat")
+        rc_3cat = joblib.load("model_rc_3cat")
+        rfc_3cat = joblib.load("model_rfc_3cat.joblib")
+        mlpc_3cat = joblib.load("model_mlpc_3cat")
+        gbc_3cat = joblib.load("model_gbc_3cat")
+        return reglog_3cat, dtc_3cat, rc_3cat, rfc_3cat, mlpc_3cat, gbc_3cat
+    reglog_3cat, dtc_3cat, rc_3cat, rfc_3cat, mlpc_3cat, gbc_3cat = load_3cat()
 
-    #ajout du model reduit 
+    #split en 7 categories
     @st.cache_data #ajout du cache decorator pour le preprocessing
-    def preprocessing_cont_red(df):
-        #conservation uniquement de distancemetrique, gpe_geo et de la variable cible
-        df_reduc = df[['DistanceMetrique', 'gpe_geo', 'ResponseTime']]
-
+    def preprocessing_7cat(df):
+        #remplacement des noms des jours de la variable Day par les chiffres correspondant
+        df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
+        #ajout d'une colonne ResponseTime_cat pour séparer la variable ResponseTime en 7 catégories
+        bin = [0,75,150,450,600,800,900,1200]
+        label = ['xveryshort','veryshort','short', 'medium','xmedium', 'long','xlong']
+        df['ResponseTime_cat'] = pd.cut(df['ResponseTime'], bins=bin, labels=label)
+        #suppression de la variable responseTime
+        df = df.drop('ResponseTime', axis=1)
         #sélection des variables explicatives et variables cibles
-        X = df_reduc.drop('ResponseTime', axis = 1)
-        y = df_reduc['ResponseTime']
-
-        #séparation en jeu d'entrainement et de test, on fixe la séparation avec le paramètre random_state
-        X_train_red, X_test_red, y_train_red, y_test_red = train_test_split(X, y, test_size=0.2, random_state=42)
-
-        ##Adaptation du préprocessing qui ne contient pas de variable temporelles
+        X = df.drop('ResponseTime_cat', axis = 1)
+        y = df['ResponseTime_cat']
+        #séparation en jeu d'entrainement et de test
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         #séparation des colonnes numériques et catégorielles
-        var_num = ['DistanceMetrique']
-        var_cat = ['gpe_geo']
+        var_num = ['NumCalls', 'DistanceMetrique']
+        var_cat = ['CalYear','DeployedFromLocation', 'PlusCode_Description', 'IncidentGroup', 'gpe_geo', 'PropertyCategory_bis', 'AddressQualifier_bis']
+        var_time = ['HourOfCall', 'week', 'month', 'Day']
 
-        X_train_red_num = X_train_red[var_num]
-        X_train_red_cat = X_train_red[var_cat]
-        X_test_red_num = X_test_red[var_num]
-        X_test_red_cat = X_test_red[var_cat]
+        X_train_num = X_train[var_num]
+        X_train_cat = X_train[var_cat]
+        X_train_time = X_train[var_time]
+        X_test_num = X_test[var_num]
+        X_test_cat = X_test[var_cat]
+        X_test_time = X_test[var_time]
+
+        #gestion des variables temps avec sinus et cosinus (variable cyclique)
+        def sin_transformer(period):
+            return FunctionTransformer(lambda x: np.sin(x / period * 2 * np.pi))
+
+        def cos_transformer(period):
+            return FunctionTransformer(lambda x: np.cos(x / period * 2 * np.pi))
+
+        for var in X_train_time :
+            X_train_time[var + '_sin'] = sin_transformer(24).fit_transform(X_train_time[var])
+            X_train_time[var + '_cos'] = cos_transformer(24).fit_transform(X_train_time[var])
+            X_train_time = X_train_time.drop(var, axis=1)
+
+        for var in X_test_time :
+            X_test_time[var + '_sin'] = sin_transformer(24).fit_transform(X_test_time[var])
+            X_test_time[var + '_cos'] = cos_transformer(24).fit_transform(X_test_time[var])
+            X_test_time = X_test_time.drop(var, axis=1)
+
+        X_train_time.reset_index(drop=True, inplace=True)
+        X_test_time.reset_index(drop=True, inplace=True)
 
         #remplissage des valeurs manquantes par simple imputer avec la stratégie median pour les variables numériques et le most frequent pour les variables catégorielles
         #gestion des données manquantes pour les variables numériques
         imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
-        X_train_red_num = imputer_num.fit_transform(X_train_red_num)
-        X_test_red_num = imputer_num.transform(X_test_red_num)
+        X_train_num = imputer_num.fit_transform(X_train_num)
+        X_test_num = imputer_num.transform(X_test_num)
 
         #gestion des données manquantes pour les variables catégorielles
         imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
-        X_train_red_cat = imputer_cat.fit_transform(X_train_red_cat)
-        X_test_red_cat = imputer_cat.transform(X_test_red_cat)
+        X_train_cat = imputer_cat.fit_transform(X_train_cat)
+        X_test_cat = imputer_cat.transform(X_test_cat)
 
         #standardisation des variables numériques avec StandardScaler
-        from sklearn.preprocessing import StandardScaler
-
         scaler = StandardScaler()
-        X_train_red_num = scaler.fit_transform(X_train_red_num)
-        X_test_red_num = scaler.transform(X_test_red_num)
+        X_train_num = scaler.fit_transform(X_train_num)
+        X_test_num = scaler.transform(X_test_num)
 
         #encodage des variables catégorielles
-        from sklearn.preprocessing import OneHotEncoder
-
         encoder = OneHotEncoder(drop = 'first', sparse_output=False)
-        X_train_red_cat = encoder.fit_transform(X_train_red_cat)
-        X_test_red_cat = encoder.transform(X_test_red_cat)
+        X_train_cat = encoder.fit_transform(X_train_cat)
+        X_test_cat = encoder.transform(X_test_cat)
 
         ##passage en dataframe des tableaux récupérés après encodage
-        X_train_red_num = pd.DataFrame(X_train_red_num)
-        X_test_red_num = pd.DataFrame(X_test_red_num)
-        X_train_red_cat = pd.DataFrame(X_train_red_cat)
-        X_test_red_cat = pd.DataFrame(X_test_red_cat)
+        X_train_num = pd.DataFrame(X_train_num)
+        X_test_num = pd.DataFrame(X_test_num)
+        X_train_cat = pd.DataFrame(X_train_cat)
+        X_test_cat = pd.DataFrame(X_test_cat)
 
         #concaténation des jeux d'entraînement et de test
-        X_train_red = pd.concat([X_train_red_num, X_train_red_cat], axis=1)
-        X_test_red = pd.concat([X_test_red_num, X_test_red_cat], axis=1)
+        X_train = pd.concat([X_train_num, X_train_cat, X_train_time], axis=1)
+        X_test = pd.concat([X_test_num, X_test_cat, X_test_time], axis=1)
 
-        X_train_red.columns = X_train_red.columns.astype(str)
-        X_test_red.columns = X_test_red.columns.astype(str)
+        X_train.columns = X_train.columns.astype(str)
+        X_test.columns = X_test.columns.astype(str)
 
-        return X_train_red, X_test_red, y_train_red, y_test_red
+        #encodage de la variable cible ResponseTime_cat dans l'ordre short, medium, long
+        le = LabelEncoder()
+        y_train = le.fit_transform(y_train)
+        y_test = le.transform(y_test)
+        return X_train, X_test, y_train, y_test
+    X_train_7cat, X_test_7cat, y_train_7cat, y_test_7cat = preprocessing_7cat(df)
 
-    #exécution de la fonction de preprocessing
-    X_train_red, X_test_red, y_train_red, y_test_red = preprocessing_cont_red(df)
+    #chargement du model
+    reglog_7cat = joblib.load("model_reglog_7cat")
 
-    #chargement des modèles
-    @st.cache_data #ajout du cache decorator pour le chargement des modeles
-    def load_models_red():
-        rfreg_cont_red = joblib.load("model_rfreg_cont_red.joblib")
-        return rfreg_cont_red
-    rfreg_cont_red = load_models_red()
+    #split en 5 categories
+    @st.cache_data #ajout du cache decorator pour le preprocessing
+    def preprocessing_5cat(df):
+        #remplacement des noms des jours de la variable Day par les chiffres correspondant
+        df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
+        #ajout d'une colonne ResponseTime_cat pour séparer la variable ResponseTime en 5 catégories
+        bin = [0,150,450,600,800,1200]
+        label = ['veryshort','short', 'medium','xmedium', 'long']
+        df['ResponseTime_cat'] = pd.cut(df['ResponseTime'], bins=bin, labels=label)
+        #suppression de la variable responseTime
+        df = df.drop('ResponseTime', axis=1)
+        #sélection des variables explicatives et variables cibles
+        X = df.drop('ResponseTime_cat', axis = 1)
+        y = df['ResponseTime_cat']
+        #séparation en jeu d'entrainement et de test
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        #séparation des colonnes numériques et catégorielles
+        var_num = ['NumCalls', 'DistanceMetrique']
+        var_cat = ['CalYear','DeployedFromLocation', 'PlusCode_Description', 'IncidentGroup', 'gpe_geo', 'PropertyCategory_bis', 'AddressQualifier_bis']
+        var_time = ['HourOfCall', 'week', 'month', 'Day']
 
-    #chargement des scores de chaque modele
-    @st.cache_data #ajout du cache decorator pour le chargement des scores de chaque modele
-    def load_scores():
-        reglog_cont_score_train = reglog_cont.score(X_train, y_train)
-        reglog_cont_score_test = reglog_cont.score(X_test, y_test)
+        X_train_num = X_train[var_num]
+        X_train_cat = X_train[var_cat]
+        X_train_time = X_train[var_time]
+        X_test_num = X_test[var_num]
+        X_test_cat = X_test[var_cat]
+        X_test_time = X_test[var_time]
+
+        #gestion des variables temps avec sinus et cosinus (variable cyclique)
+        def sin_transformer(period):
+            return FunctionTransformer(lambda x: np.sin(x / period * 2 * np.pi))
+
+        def cos_transformer(period):
+            return FunctionTransformer(lambda x: np.cos(x / period * 2 * np.pi))
+
+        for var in X_train_time :
+            X_train_time[var + '_sin'] = sin_transformer(24).fit_transform(X_train_time[var])
+            X_train_time[var + '_cos'] = cos_transformer(24).fit_transform(X_train_time[var])
+            X_train_time = X_train_time.drop(var, axis=1)
+
+        for var in X_test_time :
+            X_test_time[var + '_sin'] = sin_transformer(24).fit_transform(X_test_time[var])
+            X_test_time[var + '_cos'] = cos_transformer(24).fit_transform(X_test_time[var])
+            X_test_time = X_test_time.drop(var, axis=1)
+
+        X_train_time.reset_index(drop=True, inplace=True)
+        X_test_time.reset_index(drop=True, inplace=True)
+
+        #remplissage des valeurs manquantes par simple imputer avec la stratégie median pour les variables numériques et le most frequent pour les variables catégorielles
+        #gestion des données manquantes pour les variables numériques
+        imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
+        X_train_num = imputer_num.fit_transform(X_train_num)
+        X_test_num = imputer_num.transform(X_test_num)
+
+        #gestion des données manquantes pour les variables catégorielles
+        imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
+        X_train_cat = imputer_cat.fit_transform(X_train_cat)
+        X_test_cat = imputer_cat.transform(X_test_cat)
+
+        #standardisation des variables numériques avec StandardScaler
+        scaler = StandardScaler()
+        X_train_num = scaler.fit_transform(X_train_num)
+        X_test_num = scaler.transform(X_test_num)
+
+        #encodage des variables catégorielles
+        encoder = OneHotEncoder(drop = 'first', sparse_output=False)
+        X_train_cat = encoder.fit_transform(X_train_cat)
+        X_test_cat = encoder.transform(X_test_cat)
+
+        ##passage en dataframe des tableaux récupérés après encodage
+        X_train_num = pd.DataFrame(X_train_num)
+        X_test_num = pd.DataFrame(X_test_num)
+        X_train_cat = pd.DataFrame(X_train_cat)
+        X_test_cat = pd.DataFrame(X_test_cat)
+
+        #concaténation des jeux d'entraînement et de test
+        X_train = pd.concat([X_train_num, X_train_cat, X_train_time], axis=1)
+        X_test = pd.concat([X_test_num, X_test_cat, X_test_time], axis=1)
+
+        X_train.columns = X_train.columns.astype(str)
+        X_test.columns = X_test.columns.astype(str)
+
+        #encodage de la variable cible ResponseTime_cat dans l'ordre short, medium, long
+        le = LabelEncoder()
+        y_train = le.fit_transform(y_train)
+        y_test = le.transform(y_test)
+        return X_train, X_test, y_train, y_test
+    X_train_5cat, X_test_5cat, y_train_5cat, y_test_5cat = preprocessing_5cat(df)
+
+    #chargement du model
+    reglog_5cat = joblib.load("model_reglog_5cat")
+
+    #split en 2 categories
+    @st.cache_data #ajout du cache decorator pour le preprocessing
+    def preprocessing_2cat(df):
+        #remplacement des noms des jours de la variable Day par les chiffres correspondant
+        df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
+        #ajout d'une colonne ResponseTime_cat pour séparer la variable ResponseTime en 7 catégories
+        bin = [0,450,1200]
+        label = ['short', 'medium-long']
+        df['ResponseTime_cat'] = pd.cut(df['ResponseTime'], bins=bin, labels=label)
+        #suppression de la variable responseTime
+        df = df.drop('ResponseTime', axis=1)
+        #sélection des variables explicatives et variables cibles
+        X = df.drop('ResponseTime_cat', axis = 1)
+        y = df['ResponseTime_cat']
+        #séparation en jeu d'entrainement et de test
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        #séparation des colonnes numériques et catégorielles
+        var_num = ['NumCalls', 'DistanceMetrique']
+        var_cat = ['CalYear','DeployedFromLocation', 'PlusCode_Description', 'IncidentGroup', 'gpe_geo', 'PropertyCategory_bis', 'AddressQualifier_bis']
+        var_time = ['HourOfCall', 'week', 'month', 'Day']
+
+        X_train_num = X_train[var_num]
+        X_train_cat = X_train[var_cat]
+        X_train_time = X_train[var_time]
+        X_test_num = X_test[var_num]
+        X_test_cat = X_test[var_cat]
+        X_test_time = X_test[var_time]
+
+        #gestion des variables temps avec sinus et cosinus (variable cyclique)
+        def sin_transformer(period):
+            return FunctionTransformer(lambda x: np.sin(x / period * 2 * np.pi))
+
+        def cos_transformer(period):
+            return FunctionTransformer(lambda x: np.cos(x / period * 2 * np.pi))
+
+        for var in X_train_time :
+            X_train_time[var + '_sin'] = sin_transformer(24).fit_transform(X_train_time[var])
+            X_train_time[var + '_cos'] = cos_transformer(24).fit_transform(X_train_time[var])
+            X_train_time = X_train_time.drop(var, axis=1)
+
+        for var in X_test_time :
+            X_test_time[var + '_sin'] = sin_transformer(24).fit_transform(X_test_time[var])
+            X_test_time[var + '_cos'] = cos_transformer(24).fit_transform(X_test_time[var])
+            X_test_time = X_test_time.drop(var, axis=1)
+
+        X_train_time.reset_index(drop=True, inplace=True)
+        X_test_time.reset_index(drop=True, inplace=True)
+
+        #remplissage des valeurs manquantes par simple imputer avec la stratégie median pour les variables numériques et le most frequent pour les variables catégorielles
+        #gestion des données manquantes pour les variables numériques
+        imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
+        X_train_num = imputer_num.fit_transform(X_train_num)
+        X_test_num = imputer_num.transform(X_test_num)
+
+        #gestion des données manquantes pour les variables catégorielles
+        imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
+        X_train_cat = imputer_cat.fit_transform(X_train_cat)
+        X_test_cat = imputer_cat.transform(X_test_cat)
+
+        #standardisation des variables numériques avec StandardScaler
+        scaler = StandardScaler()
+        X_train_num = scaler.fit_transform(X_train_num)
+        X_test_num = scaler.transform(X_test_num)
+
+        #encodage des variables catégorielles
+        encoder = OneHotEncoder(drop = 'first', sparse_output=False)
+        X_train_cat = encoder.fit_transform(X_train_cat)
+        X_test_cat = encoder.transform(X_test_cat)
+
+        ##passage en dataframe des tableaux récupérés après encodage
+        X_train_num = pd.DataFrame(X_train_num)
+        X_test_num = pd.DataFrame(X_test_num)
+        X_train_cat = pd.DataFrame(X_train_cat)
+        X_test_cat = pd.DataFrame(X_test_cat)
+
+        #concaténation des jeux d'entraînement et de test
+        X_train = pd.concat([X_train_num, X_train_cat, X_train_time], axis=1)
+        X_test = pd.concat([X_test_num, X_test_cat, X_test_time], axis=1)
+
+        X_train.columns = X_train.columns.astype(str)
+        X_test.columns = X_test.columns.astype(str)
+
+        #encodage de la variable cible ResponseTime_cat dans l'ordre short, medium, long
+        le = LabelEncoder()
+        y_train = le.fit_transform(y_train)
+        y_test = le.transform(y_test)
+        return X_train, X_test, y_train, y_test
+    X_train_2cat, X_test_2cat, y_train_2cat, y_test_2cat = preprocessing_2cat(df)
+
+    #chargement du model
+    reglog_2cat = joblib.load("model_reglog_2cat")
+        
+    ##chargement des scores de tous les modeles
+    @st.cache_data #ajout du cache decorator pour le chargement des scores de tous les modeles
+    def load_scores_cat():
+        reglog_3cat_score_train = 0.8418432007459151 #reglog_3cat.score(X_train_3cat,y_train_3cat)
+        reglog_3cat_score_test = 0.8426910494290104 #reglog_3cat.score(X_test_3cat,y_test_3cat)
+        dtc_3cat_score_train = 0.8436867055333014 #dtc_3cat.score(X_train_3cat,y_train_3cat)
+        dtc_3cat_score_test = 0.8444098963421802 #dtc_3cat.score(X_test_3cat,y_test_3cat)
+        rc_3cat_score_train = 0.8285216236828037 #rc_3cat.score(X_train_3cat,y_train_3cat)
+        rc_3cat_score_test = 0.8296618655164446 #rc_3cat.score(X_test_3cat,y_test_3cat)
+        rfc_3cat_score_train = 0.9888842438108558 #rfc_3cat.score(X_train_3cat,y_train_3cat)
+        rfc_3cat_score_test = 0.8501724927739513 #rfc_3cat.score(X_test_3cat,y_test_3cat)
+        mlpc_3cat_score_train = 0.8494173805307044 #mlpc_3cat.score(X_train_3cat,y_train_3cat)
+        mlpc_3cat_score_test = 0.8493900931177207 #mlpc_3cat.score(X_test_3cat,y_test_3cat)
+        gbc_3cat_score_train = 0.8482143897760988 #gbc_3cat.score(X_train_3cat,y_train_3cat)
+        gbc_3cat_score_test = 0.8485387774295942 #gbc_3cat.score(X_test_3cat,y_test_3cat)
+        reglog_7cat_score_train = 0.7782995462476754 #reglog_7cat.score(X_train_7cat,y_train_7cat)
+        reglog_7cat_score_test = 0.7788464890068093 #reglog_7cat.score(X_test_7cat,y_test_7cat)
+        reglog_5cat_score_train = 0.7783200501936598 #reglog_5cat.score(X_train_5cat,y_train_5cat)
+        reglog_5cat_score_test = 0.7789305551853454 #reglog_5cat.score(X_test_5cat,y_test_5cat)
+        reglog_2cat_score_train = 0.8414434983012481 #reglog_2cat.score(X_train_2cat,y_train_2cat)
+        reglog_2cat_score_test = 0.8422467403851871 #reglog_2cat.score(X_test_2cat,y_test_2cat)
+        return reglog_3cat_score_train,reglog_3cat_score_test, dtc_3cat_score_train,dtc_3cat_score_test,rc_3cat_score_train,rc_3cat_score_test, \
+            rfc_3cat_score_train, rfc_3cat_score_test,mlpc_3cat_score_train,mlpc_3cat_score_test,gbc_3cat_score_train,gbc_3cat_score_test, \
+            reglog_7cat_score_train,reglog_7cat_score_test,reglog_5cat_score_train,reglog_5cat_score_test,reglog_2cat_score_train,reglog_2cat_score_test
+        
+    reglog_3cat_score_train,reglog_3cat_score_test, dtc_3cat_score_train,dtc_3cat_score_test,rc_3cat_score_train,rc_3cat_score_test, \
+        rfc_3cat_score_train, rfc_3cat_score_test,mlpc_3cat_score_train,mlpc_3cat_score_test,gbc_3cat_score_train,gbc_3cat_score_test, \
+        reglog_7cat_score_train,reglog_7cat_score_test,reglog_5cat_score_train,reglog_5cat_score_test,reglog_2cat_score_train,reglog_2cat_score_test = load_scores_cat()
+        
+        ##chargement des predictions de tous les modeles
+        #@st.cache_data #ajout du cache decorator pour le chargement des scores de tous les modeles
+        #def load_predict_cat():    
+        #    y_pred_reglog_3cat = reglog_3cat.predict(X_test_3cat)
+        #    y_pred_dtc_3cat = dtc_3cat.predict(X_test_3cat)
+        #    y_pred_rc_3cat = rc_3cat.predict(X_test_3cat)
+        #    y_pred_rfc_3cat = rfc_3cat.predict(X_test_3cat)
+        #    y_pred_mlpc_3cat = mlpc_3cat.predict(X_test_3cat)
+        #    y_pred_gbc_3cat = gbc_3cat.predict(X_test_3cat)
+        #    y_pred_reglog_7cat = reglog_7cat.predict(X_test_7cat)
+        #    y_pred_reglog_5cat = reglog_5cat.predict(X_test_5cat)
+        #    y_pred_reglog_2cat = reglog_2cat.predict(X_test_2cat)
+        #    return y_pred_reglog_3cat,y_pred_dtc_3cat,y_pred_rc_3cat,y_pred_rfc_3cat,y_pred_mlpc_3cat,y_pred_gbc_3cat,y_pred_reglog_7cat,y_pred_reglog_5cat,y_pred_reglog_2cat
+        #y_pred_reglog_3cat,y_pred_dtc_3cat,y_pred_rc_3cat,y_pred_rfc_3cat,y_pred_mlpc_3cat,y_pred_gbc_3cat,y_pred_reglog_7cat,y_pred_reglog_5cat, \
+        #    y_pred_reglog_2cat = load_predict_cat()
+
+    ##chargement des pd.crosstab de tous les modeles
+    @st.cache_data #ajout du cache decorator pour le chargement des scores de tous les modeles
+    def load_crosstab_cat():
+        crosstab_reglog_3cat = Image.open("crosstab_reglog_3cat.png") #pd.crosstab(y_test_3cat,y_pred_reglog_3cat, rownames=['Réalité'], colnames=['Prédictions'])
+        crosstab_dtc_3cat = Image.open("crosstab_dtc_3cat.png") #pd.crosstab(y_test_3cat,y_pred_dtc_3cat, rownames=['Réalité'], colnames=['Prédictions'])
+        crosstab_rc_3cat = Image.open("crosstab_rc_3cat.png") #pd.crosstab(y_test_3cat,y_pred_rc_3cat, rownames=['Réalité'], colnames=['Prédictions'])
+        crosstab_rfc_3cat = Image.open("crosstab_rfc_3cat.png") #pd.crosstab(y_test_3cat,y_pred_rfc_3cat, rownames=['Réalité'], colnames=['Prédictions'])
+        crosstab_mlpc_3cat = Image.open("crosstab_mlpc_3cat.png") #pd.crosstab(y_test_3cat,y_pred_mlpc_3cat, rownames=['Réalité'], colnames=['Prédictions'])
+        crosstab_gbc_3cat = Image.open("crosstab_gbc_3cat.png") #pd.crosstab(y_test_3cat,y_pred_gbc_3cat, rownames=['Réalité'], colnames=['Prédictions'])
+        crosstab_reglog_7cat = Image.open("crosstab_reglog_7cat.png") #pd.crosstab(y_test_7cat,y_pred_reglog_7cat, rownames=['Réalité'], colnames=['Prédictions'])
+        crosstab_reglog_5cat = Image.open("crosstab_reglog_5cat.png") #pd.crosstab(y_test_5cat,y_pred_reglog_5cat, rownames=['Réalité'], colnames=['Prédictions'])
+        crosstab_reglog_2cat = Image.open("crosstab_reglog_2cat.png") #pd.crosstab(y_test_2cat,y_pred_reglog_2cat, rownames=['Réalité'], colnames=['Prédictions'])
+        return crosstab_reglog_3cat,crosstab_dtc_3cat,crosstab_rc_3cat,crosstab_rfc_3cat,crosstab_mlpc_3cat,crosstab_gbc_3cat,crosstab_reglog_7cat, \
+            crosstab_reglog_5cat,crosstab_reglog_2cat
+    crosstab_reglog_3cat,crosstab_dtc_3cat,crosstab_rc_3cat,crosstab_rfc_3cat,crosstab_mlpc_3cat,crosstab_gbc_3cat, \
+        crosstab_reglog_7cat,crosstab_reglog_5cat,crosstab_reglog_2cat = load_crosstab_cat()
+        
+    ##chargement des classification_report de tous les modeles
+    @st.cache_data #ajout du cache decorator pour le chargement des scores de tous les modeles
+    def load_classificationreport_cat():
+        classificationreport_reglog_3cat = Image.open("classificationreport_reglog_3cat.png") #classification_report(y_test_3cat,y_pred_reglog_3cat)
+        classificationreport_dtc_3cat = Image.open("classificationreport_dtc_3cat.png") #classification_report(y_test_3cat,y_pred_dtc_3cat)
+        classificationreport_rc_3cat = Image.open("classificationreport_rc_3cat.png") #classification_report(y_test_3cat,y_pred_rc_3cat)
+        classificationreport_rfc_3cat = Image.open("classificationreport_rfc_3cat.png") #classification_report(y_test_3cat,y_pred_rfc_3cat)
+        classificationreport_mlpc_3cat = Image.open("classificationreport_mlpc_3cat.png") #classification_report(y_test_3cat,y_pred_mlpc_3cat)
+        classificationreport_gbc_3cat = Image.open("classificationreport_gbc_3cat.png") #classification_report(y_test_3cat,y_pred_gbc_3cat)
+        classificationreport_reglog_7cat = Image.open("classificationreport_reglog_7cat.png") #classification_report(y_test_7cat,y_pred_reglog_7cat)
+        classificationreport_reglog_5cat = Image.open("classificationreport_reglog_5cat.png") #classification_report(y_test_5cat,y_pred_reglog_5cat)
+        classificationreport_reglog_2cat = Image.open("classificationreport_reglog_2cat.png") #classification_report(y_test_2cat,y_pred_reglog_2cat)
+        return classificationreport_reglog_3cat,classificationreport_dtc_3cat,classificationreport_rc_3cat,classificationreport_rfc_3cat,classificationreport_mlpc_3cat, \
+            classificationreport_gbc_3cat,classificationreport_reglog_7cat,classificationreport_reglog_5cat,classificationreport_reglog_2cat
+    classificationreport_reglog_3cat,classificationreport_dtc_3cat,classificationreport_rc_3cat,classificationreport_rfc_3cat,classificationreport_mlpc_3cat, \
+        classificationreport_gbc_3cat,classificationreport_reglog_7cat,classificationreport_reglog_5cat,classificationreport_reglog_2cat = load_classificationreport_cat()
+              
+    #séparation de la page en 4 partie pour ajouter les toggle pour chaque partie
+    one, two, three, four = st.columns(4)
+    cat_3 = one.toggle("3 catégories")
+    cat_7 = two.toggle("7 catégories")
+    cat_5 = three.toggle("5 catégories")
+    cat_2 = four.toggle("2 catégories")
+
+    st.write("Modélisations effectuées uniquement avec le modèle de régression logistique.")
+
+    #initiation d'une table
+    table_cat = st.table(pd.DataFrame(columns=("Train score", "Test score")))
+
+    #affichage pour 3 catégories
+    if cat_3 : 
+        table_cat.add_rows(pd.DataFrame({"Train score": reglog_3cat_score_train,"Test score": reglog_3cat_score_test},index=['3 catégories']))
+        one.image(crosstab_reglog_3cat, caption='Crosstab')
+        one.image(classificationreport_reglog_3cat, caption='Classification Report')
+
+    #affichage pour 7 catégories
+    if cat_7:
+        table_cat.add_rows(pd.DataFrame({"Train score": reglog_7cat_score_train,"Test score": reglog_7cat_score_test},index=['7 catégories']))
+        two.image(crosstab_reglog_7cat, caption='Crosstab')
+        two.image(classificationreport_reglog_7cat, caption='Classification Report')
+            
+    #affichage pour 5 catégories
+    if cat_5:
+        table_cat.add_rows(pd.DataFrame({"Train score": reglog_5cat_score_train,"Test score": reglog_5cat_score_test}, index=['5 catégories']))
+        three.image(crosstab_reglog_5cat, caption='Crosstab')
+        three.image(classificationreport_reglog_5cat, caption='Classification Report')
+            
+    #affichage pour 2 catégories
+    if cat_2:
+        table_cat.add_rows(pd.DataFrame({"Train score": reglog_2cat_score_train,"Test score": reglog_2cat_score_test}, index=['2 catégories']))
+        four.image(crosstab_reglog_2cat, caption='Crosstab')
+        four.image(classificationreport_reglog_2cat, caption='Classification Report')
+
+    if cat_3 and cat_7 and cat_5 and cat_2:
+        interpretation_cat = st.toggle("Cliquez pour voir l'interprétation des catégories")
+        if interpretation_cat:
+            st.write("Ces découpages ne permettent pas d’améliorer les résultats, nous restons donc sur un découpage de la variable cible avec 3 catégories.")
+    else:
+        st.info("Activez toutes les catégories pour voir l'interprétation")
+
+    st.write("\n")
+    st.markdown(":blue[Tests de plusieurs modèles]\n")
+
     
-        reglin_cont_score_train = reglin_cont.score(X_train, y_train)
-        reglin_cont_score_test = reglin_cont.score(X_test, y_test)
+    # Listes de données fixes 
+    model_names=["Régression Logistique","Decision Tree Classifier","Ridge Classifier","Random Forest Classifier","MLP Classifier","Gradient Boosting Classifier"]
+    train_scores = {"Régression Logistique":reglog_3cat_score_train, "Decision Tree Classifier":dtc_3cat_score_train, "Ridge Classifier":rc_3cat_score_train, 
+                    "Random Forest Classifier":rfc_3cat_score_train, "MLP Classifier":mlpc_3cat_score_train, "Gradient Boosting Classifier":gbc_3cat_score_train}
+    test_scores = {"Régression Logistique":reglog_3cat_score_test, "Decision Tree Classifier":dtc_3cat_score_test, "Ridge Classifier":rc_3cat_score_test, 
+                   "Random Forest Classifier":rfc_3cat_score_test, "MLP Classifier":mlpc_3cat_score_test, "Gradient Boosting Classifier":gbc_3cat_score_test}
 
-        dtreg_cont_score_train = dtreg_cont.score(X_train, y_train)
-        dtreg_cont_score_test = dtreg_cont.score(X_test,y_test)
+    # Crosstab pour chaque index 
+    crosstab_images = {
+        "Régression Logistique": crosstab_reglog_3cat,
+        "Decision Tree Classifier": crosstab_dtc_3cat,
+        "Ridge Classifier": crosstab_rc_3cat,
+        "Random Forest Classifier": crosstab_rfc_3cat,
+        "MLP Classifier": crosstab_mlpc_3cat,
+        "Gradient Boosting Classifier": crosstab_gbc_3cat
+    }
 
-        rf_reg_cont_score_train = rf_reg_cont.score(X_train, y_train)
-        rf_reg_cont_score_test = rf_reg_cont.score(X_test, y_test)
+    #classification report pour chaque index
+    classification_images = {
+        "Régression Logistique": classificationreport_reglog_3cat,
+        "Decision Tree Classifier": classificationreport_dtc_3cat,
+        "Ridge Classifier": classificationreport_rc_3cat,
+        "Random Forest Classifier": classificationreport_rfc_3cat,
+        "MLP Classifier": classificationreport_mlpc_3cat,
+        "Gradient Boosting Classifier": classificationreport_gbc_3cat
+    }
 
-        ridge_cont_score_train = ridge_cont.score(X_train, y_train)
-        ridge_cont_score_test = ridge_cont.score(X_test, y_test)
+    # Création du DataFrame sans Crosstab pour affichage tabulaire
+    df = pd.DataFrame({
+        "Train Score": train_scores,
+        "Test Score": test_scores,
+    }, index=model_names)
 
-        lasso_cont_score_train = lasso_cont.score(X_train, y_train)
-        lasso_cont_score_test = lasso_cont.score(X_test, y_test)
+    st.write("Cochez les modèles à afficher :")
 
-        rfreg_cont_red_score_train = rfreg_cont_red.score(X_train_red, y_train_red)
-        rfreg_cont_red_score_test = rfreg_cont_red.score(X_test_red, y_test_red)
+    # Affichage dynamique ligne par ligne avec image
+    for model in df.index:
+        col1, col2 = st.columns([0.05, 0.95])
+        with col1:
+            show = st.checkbox("", key=f"chk_{model}")
+        with col2:
+            st.markdown(f"**{model}**")
+            if show:
+                st.markdown(f"- Train Score: `{df.loc[model, 'Train Score']}`")
+                st.markdown(f"- Test Score: `{df.loc[model, 'Test Score']}`")
+                # Affichage des deux images côte à côte
+                img_col1, img_col2 = st.columns(2)
+                img_col1.image(crosstab_images[model], caption=f"Crosstab de {model}", use_container_width=False)
+                img_col2.image(classification_images[model], caption=f"Classification Report de {model}", use_container_width=False)
+            st.markdown("---")
 
-        return reglog_cont_score_train, reglog_cont_score_test, reglin_cont_score_train, reglin_cont_score_test, dtreg_cont_score_train, dtreg_cont_score_test, \
-            rf_reg_cont_score_train, rf_reg_cont_score_test, ridge_cont_score_train, ridge_cont_score_test,lasso_cont_score_train, lasso_cont_score_test, \
-            rfreg_cont_red_score_train, rfreg_cont_red_score_test
+    interpretation_models = st.toggle("Cliquez pour voir l'interprétation des modèles")
+    if interpretation_models:
+        st.write('<div style="text-align: justify;">Les scores sont similaires pour la RegressionLogistic et pour le DecisionTreeClassifier et légèrement plus faible \
+            pour le RidgeClassifier. En revanche le RandomForestClassifier présente un écart de 0.14 ce qui est plus important que pour les autres modèles. \
+                Ces résultats nous indiquent une prédiction présentant un certain écart avec la réalité, ce qu’on peut constater avec le crosstab particulièrement \
+                    sur les catégories situées dans la zone avec un fort bruit sur notre graphique de distancemetrique/responsetime.</div>', unsafe_allow_html=True)
 
-    reglog_cont_score_train, reglog_cont_score_test, reglin_cont_score_train, reglin_cont_score_test, dtreg_cont_score_train, dtreg_cont_score_test, \
-        rf_reg_cont_score_train, rf_reg_cont_score_test, ridge_cont_score_train, ridge_cont_score_test,lasso_cont_score_train, lasso_cont_score_test,\
-            rfreg_cont_red_score_train, rfreg_cont_red_score_test = load_scores()
+    #affichage dans le streamlit
+#    options = ["","Régression Logistique", "Decision Tree Classifier", "Ridge Classifier", "Random Forest Classifier", "MLP Classifier","Gradient Boosting Classifier"]
+#    select = st.selectbox("Choix du modèle :", options=options)
 
-    #affichage des scores pour comparatif
-    table = st.data_editor([
-        {"Modèle":"Régression Logistique", "Train Score" : reglog_cont_score_train, "Test Score" : reglog_cont_score_test},
-        {"Modèle":"Régression Linéaire", "Train Score" : reglin_cont_score_train, "Test Score" : reglin_cont_score_test},
-        {"Modèle":"Decision Tree Regressor", "Train Score" : dtreg_cont_score_train, "Test Score" : dtreg_cont_score_test},
-        {"Modèle":"Random Forest Regressor", "Train Score" : rf_reg_cont_score_train, "Test Score" : rf_reg_cont_score_test},
-        {"Modèle":"Bayesian Ridge", "Train Score" : ridge_cont_score_train, "Test Score" : ridge_cont_score_test},
-        {"Modèle":"Lasso Lars", "Train Score" : lasso_cont_score_train, "Test Score" : lasso_cont_score_test},
-        {"Modèle":"Random Forest (nb réduit de variables*)", "Train Score" : rfreg_cont_red_score_train, "Test Score" : rfreg_cont_red_score_test}
-    ], column_config={
-        "Test Score" : st.column_config.ProgressColumn(
-            "Test Score",
-            min_value=0,
-            max_value=0.8000,
-        ),
-        "Train Score": st.column_config.ProgressColumn(
-            "Train Score",
-            min_value=0,
-            max_value=0.8000,
-        ),
-    }, hide_index=True)
-    
-    st.markdown("(*)*conservation pour ce modèle uniquement des variables DistanceMetrique et gpe_geo en plus de la variable cible*")
+
+
+    #initiation d'une table
+#    table_final = st.table(pd.DataFrame(columns=("Train score", "Test score","Crosstab")))
+
+#    if select == "Régression Logistique":
+#        table_final.add_rows(pd.DataFrame({"Train score": reglog_3cat_score_train,"Test score": reglog_3cat_score_test, "Crosstab":crosstab_reglog_3cat},index=['Régression Logistique']))
+#        st.image([crosstab_reglog_3cat, classificationreport_reglog_3cat], caption=['Crosstab','Classification Report'])
+        
+#    if select == "Decision Tree Classifier":
+#        st.table(pd.DataFrame({"Train score": dtc_3cat_score_train,"Test score": dtc_3cat_score_test},index=["Decision Tree Classifier"]))
+#        st.image([crosstab_dtc_3cat, classificationreport_dtc_3cat], caption=['Crosstab','Classification Report'])
+
+#    if select == "Ridge Classifier":
+#        st.table(pd.DataFrame({"Train score": rc_3cat_score_train,"Test score": rc_3cat_score_test},index=["Ridge Classifier"]))
+#        st.image([crosstab_rc_3cat, classificationreport_rc_3cat], caption=['Crosstab','Classification Report'])
+
+#    if select == "Random Forest Classifier":
+#        st.table(pd.DataFrame({"Train score": dtc_3cat_score_train,"Test score": dtc_3cat_score_test},index=["Random Forest Classifier"]))
+#        st.image([crosstab_dtc_3cat, classificationreport_dtc_3cat], caption=['Crosstab','Classification Report'])
+
+#    if select == "MLP Classifier":
+#        st.table(pd.DataFrame({"Train score": dtc_3cat_score_train,"Test score": dtc_3cat_score_test},index=["MLP Classifier"]))
+#        st.image([crosstab_dtc_3cat, classificationreport_dtc_3cat], caption=['Crosstab','Classification Report'])
+
+#    if select == "Gradient Boosting Classifier":
+#        st.table(pd.DataFrame({"Train score": dtc_3cat_score_train,"Test score": dtc_3cat_score_test},index=["Gradient Boosting Classifier"]))
+#        st.image([crosstab_dtc_3cat, classificationreport_dtc_3cat], caption=['Crosstab','Classification Report'])
 
     # add the link at the bottom of each page
     st.markdown("<a href='#linkto_top'>Link to top</a>", unsafe_allow_html=True)
