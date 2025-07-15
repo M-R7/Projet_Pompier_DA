@@ -18,7 +18,7 @@ from scipy.stats import kruskal
 # logo = Image.open("https://github.com/M-R7/Projet_Pompier_DA/blob/main/img_pompiers.png")
 
 st.sidebar.title("Temps de réponse de la Brigade des Pompiers de Londres")
-pages = ["Introduction","Jeux de données","Data Visualisation","Cartographie","Prédiction du temps de réponse"]
+pages = ["Introduction","Jeux de données","Data Visualisation","Cartographie","Modélisation"]
 page=st.sidebar.radio("",pages)
 st.markdown("""
     <style>
@@ -532,7 +532,8 @@ Il comporte 34 entrées et 2 colonnes.
             </div>
         """, unsafe_allow_html=True)
 elif page == pages[2]:
-    st.markdown("<h4 style='font-size:20px; margin-bottom: 0px;'>Data Visualisation</h4>", unsafe_allow_html=True)
+    st.markdown("<a id='haut'></a>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'>Data Visualisation</h3>", unsafe_allow_html=True)
     #lecture du fichier merge pour la dataviz streamlit
     
     @st.cache_data #ajout du caching decorator pour le chargement du fichier
@@ -874,8 +875,16 @@ elif page == pages[2]:
                             st.write(f"{col} → η² = {eta2:.4f}")
                 Eta_squared()
 
-    # add the link at the bottom of each page
-    st.markdown("<a href='#linkto_top'>Link to top</a>", unsafe_allow_html=True)
+    # Ouvre l'image et encode en base64
+    with open("NicePng_arrow-png_101114.png", "rb") as img_file:
+        img_base64 = base64.b64encode(img_file.read()).decode()
+    st.markdown(f"""
+        <div style="text-align: left; margin-top: 0px;">
+            <a href="#haut">
+                <img src="data:image/png;base64,{img_base64}" alt="Retour en haut" width="25" />
+            </a>
+        </div>
+    """, unsafe_allow_html=True)
 
 elif page == pages[3]:
     #lecture du fichier mobilisation v2
@@ -1037,8 +1046,10 @@ elif page == pages[3]:
 
         # Affichage de la carte dans Streamlit
         st_folium(m, width=700, height=500)
+
 elif page == pages[4]:
-    st.markdown("<h4 style='font-size:20px; margin-bottom: 0px;'>Modélisation</h4>", unsafe_allow_html=True)
+    st.markdown("<a id='haut'></a>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'>Modélisation</h3>", unsafe_allow_html=True)
 
     #chargement des packages pour la modélisation
     from sklearn.model_selection import train_test_split
@@ -2070,5 +2081,13 @@ elif page == pages[4]:
 #        st.table(pd.DataFrame({"Train score": dtc_3cat_score_train,"Test score": dtc_3cat_score_test},index=["Gradient Boosting Classifier"]))
 #        st.image([crosstab_dtc_3cat, classificationreport_dtc_3cat], caption=['Crosstab','Classification Report'])
 
-    # add the link at the bottom of each page
-    st.markdown("<a href='#linkto_top'>Link to top</a>", unsafe_allow_html=True)
+    # Ouvre l'image et encode en base64
+    with open("NicePng_arrow-png_101114.png", "rb") as img_file:
+        img_base64 = base64.b64encode(img_file.read()).decode()
+    st.markdown(f"""
+        <div style="text-align: left; margin-top: 0px;">
+            <a href="#haut">
+                <img src="data:image/png;base64,{img_base64}" alt="Retour en haut" width="25" />
+            </a>
+        </div>
+    """, unsafe_allow_html=True)
