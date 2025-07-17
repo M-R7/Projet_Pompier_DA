@@ -33,7 +33,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 st.sidebar.markdown("""
-    <div style='background-color:  #ffc2b5; padding: 20px; border-radius: 5px; color:  #1b1a1a; text-align: left;'>
+    <div style='background-color:  #E6F2E6; padding: 20px; border-radius: 5px; color:  #1b1a1a; text-align: left;'>
         Auteurs : Morgane Rivière<br>
         Rémi Moulinas<br><br>
         Continu Data Analyst Novembre/Décembre 2024, 
