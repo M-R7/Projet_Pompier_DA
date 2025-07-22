@@ -1487,382 +1487,382 @@ elif page == pages[4]:
     graphs.image("distance_responsetime_600.png", caption="ResponseTime > 600")
 
     #split en 3 categories
-    @st.cache_data #ajout du cache decorator pour le preprocessing
-    def preprocessing_3cat(df):
-        #remplacement des noms des jours de la variable Day par les chiffres correspondant
-        df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
-        #ajout d'une colonne ResponseTime_cat pour séparer la variable ResponseTime en trois catégories
-        bin = [0,200,600,1200]
-        label = ['short', 'medium', 'long']
-        df['ResponseTime_cat'] = pd.cut(df['ResponseTime'], bins=bin, labels=label)
-        #suppression de la variable responseTime
-        df = df.drop('ResponseTime', axis=1)
-        #sélection des variables explicatives et variables cibles
-        X = df.drop('ResponseTime_cat', axis = 1)
-        y = df['ResponseTime_cat']
-        #séparation en jeu d'entrainement et de test
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    #@st.cache_data #ajout du cache decorator pour le preprocessing
+    #def preprocessing_3cat(df):
+    #    #remplacement des noms des jours de la variable Day par les chiffres correspondant
+    #    df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
+    #    #ajout d'une colonne ResponseTime_cat pour séparer la variable ResponseTime en trois catégories
+    #    bin = [0,200,600,1200]
+    #    label = ['short', 'medium', 'long']
+    #    df['ResponseTime_cat'] = pd.cut(df['ResponseTime'], bins=bin, labels=label)
+    #    #suppression de la variable responseTime
+    #    df = df.drop('ResponseTime', axis=1)
+    #    #sélection des variables explicatives et variables cibles
+    #    X = df.drop('ResponseTime_cat', axis = 1)
+    #    y = df['ResponseTime_cat']
+    #    #séparation en jeu d'entrainement et de test
+    #    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         #séparation des colonnes numériques et catégorielles
-        var_num = ['NumCalls', 'DistanceMetrique']
-        var_cat = ['CalYear','DeployedFromLocation', 'PlusCode_Description', 'IncidentGroup', 'gpe_geo', 'PropertyCategory_bis', 'AddressQualifier_bis']
-        var_time = ['HourOfCall', 'week', 'month', 'Day']
+    #    var_num = ['NumCalls', 'DistanceMetrique']
+    #    var_cat = ['CalYear','DeployedFromLocation', 'PlusCode_Description', 'IncidentGroup', 'gpe_geo', 'PropertyCategory_bis', 'AddressQualifier_bis']
+    #    var_time = ['HourOfCall', 'week', 'month', 'Day']
 
-        X_train_num = X_train[var_num]
-        X_train_cat = X_train[var_cat]
-        X_train_time = X_train[var_time]
-        X_test_num = X_test[var_num]
-        X_test_cat = X_test[var_cat]
-        X_test_time = X_test[var_time]
+    #    X_train_num = X_train[var_num]
+    #    X_train_cat = X_train[var_cat]
+    #    X_train_time = X_train[var_time]
+    #    X_test_num = X_test[var_num]
+    #    X_test_cat = X_test[var_cat]
+    #    X_test_time = X_test[var_time]
 
         #gestion des variables temps avec sinus et cosinus (variable cyclique)
-        def sin_transformer(period):
-            return FunctionTransformer(lambda x: np.sin(x / period * 2 * np.pi))
+    #    def sin_transformer(period):
+    #        return FunctionTransformer(lambda x: np.sin(x / period * 2 * np.pi))
 
-        def cos_transformer(period):
-            return FunctionTransformer(lambda x: np.cos(x / period * 2 * np.pi))
+    #    def cos_transformer(period):
+    #        return FunctionTransformer(lambda x: np.cos(x / period * 2 * np.pi))
 
-        for var in X_train_time :
-            X_train_time[var + '_sin'] = sin_transformer(24).fit_transform(X_train_time[var])
-            X_train_time[var + '_cos'] = cos_transformer(24).fit_transform(X_train_time[var])
-            X_train_time = X_train_time.drop(var, axis=1)
+    #    for var in X_train_time :
+    #        X_train_time[var + '_sin'] = sin_transformer(24).fit_transform(X_train_time[var])
+    #        X_train_time[var + '_cos'] = cos_transformer(24).fit_transform(X_train_time[var])
+    #        X_train_time = X_train_time.drop(var, axis=1)
 
-        for var in X_test_time :
-            X_test_time[var + '_sin'] = sin_transformer(24).fit_transform(X_test_time[var])
-            X_test_time[var + '_cos'] = cos_transformer(24).fit_transform(X_test_time[var])
-            X_test_time = X_test_time.drop(var, axis=1)
+    #    for var in X_test_time :
+    #        X_test_time[var + '_sin'] = sin_transformer(24).fit_transform(X_test_time[var])
+    #        X_test_time[var + '_cos'] = cos_transformer(24).fit_transform(X_test_time[var])
+    #        X_test_time = X_test_time.drop(var, axis=1)
 
-        X_train_time.reset_index(drop=True, inplace=True)
-        X_test_time.reset_index(drop=True, inplace=True)
+    #    X_train_time.reset_index(drop=True, inplace=True)
+    #    X_test_time.reset_index(drop=True, inplace=True)
 
         #remplissage des valeurs manquantes par simple imputer avec la stratégie median pour les variables numériques et le most frequent pour les variables catégorielles
         #gestion des données manquantes pour les variables numériques
-        imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
-        X_train_num = imputer_num.fit_transform(X_train_num)
-        X_test_num = imputer_num.transform(X_test_num)
+    #    imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
+    #    X_train_num = imputer_num.fit_transform(X_train_num)
+    #    X_test_num = imputer_num.transform(X_test_num)
 
         #gestion des données manquantes pour les variables catégorielles
-        imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
-        X_train_cat = imputer_cat.fit_transform(X_train_cat)
-        X_test_cat = imputer_cat.transform(X_test_cat)
+    #    imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
+    #    X_train_cat = imputer_cat.fit_transform(X_train_cat)
+    #    X_test_cat = imputer_cat.transform(X_test_cat)
 
         #standardisation des variables numériques avec StandardScaler
-        scaler = StandardScaler()
-        X_train_num = scaler.fit_transform(X_train_num)
-        X_test_num = scaler.transform(X_test_num)
+    #    scaler = StandardScaler()
+    #    X_train_num = scaler.fit_transform(X_train_num)
+    #    X_test_num = scaler.transform(X_test_num)
 
         #encodage des variables catégorielles
-        encoder = OneHotEncoder(drop = 'first', sparse_output=False)
-        X_train_cat = encoder.fit_transform(X_train_cat)
-        X_test_cat = encoder.transform(X_test_cat)
+    #    encoder = OneHotEncoder(drop = 'first', sparse_output=False)
+    #    X_train_cat = encoder.fit_transform(X_train_cat)
+    #    X_test_cat = encoder.transform(X_test_cat)
 
         ##passage en dataframe des tableaux récupérés après encodage
-        X_train_num = pd.DataFrame(X_train_num)
-        X_test_num = pd.DataFrame(X_test_num)
-        X_train_cat = pd.DataFrame(X_train_cat)
-        X_test_cat = pd.DataFrame(X_test_cat)
+    #    X_train_num = pd.DataFrame(X_train_num)
+    #    X_test_num = pd.DataFrame(X_test_num)
+    #    X_train_cat = pd.DataFrame(X_train_cat)
+    #    X_test_cat = pd.DataFrame(X_test_cat)
 
         #concaténation des jeux d'entraînement et de test
-        X_train = pd.concat([X_train_num, X_train_cat, X_train_time], axis=1)
-        X_test = pd.concat([X_test_num, X_test_cat, X_test_time], axis=1)
+    #    X_train = pd.concat([X_train_num, X_train_cat, X_train_time], axis=1)
+    #    X_test = pd.concat([X_test_num, X_test_cat, X_test_time], axis=1)
 
-        X_train.columns = X_train.columns.astype(str)
-        X_test.columns = X_test.columns.astype(str)
+    #    X_train.columns = X_train.columns.astype(str)
+    #    X_test.columns = X_test.columns.astype(str)
 
          #encodage de la variable cible ResponseTime_cat dans l'ordre short, medium, long
-        le = LabelEncoder()
-        y_train = le.fit_transform(y_train)
-        y_test = le.transform(y_test)
+    #    le = LabelEncoder()
+    #    y_train = le.fit_transform(y_train)
+    #    y_test = le.transform(y_test)
 
-        return X_train, X_test, y_train, y_test
-    X_train_3cat, X_test_3cat, y_train_3cat, y_test_3cat = preprocessing_3cat(df)
+    #    return X_train, X_test, y_train, y_test
+    #X_train_3cat, X_test_3cat, y_train_3cat, y_test_3cat = preprocessing_3cat(df)
 
     #chargement des modèles
-    @st.cache_data #ajout du cache decorator pour le chargement des modeles
-    def load_3cat():
-        reglog_3cat = joblib.load("model_reglog_3cat")
-        dtc_3cat = joblib.load("model_dtc_3cat")
-        rc_3cat = joblib.load("model_rc_3cat")
-        rfc_3cat = joblib.load("model_rfc_3cat.joblib")
-        mlpc_3cat = joblib.load("model_mlpc_3cat")
-        gbc_3cat = joblib.load("model_gbc_3cat")
-        return reglog_3cat, dtc_3cat, rc_3cat, rfc_3cat, mlpc_3cat, gbc_3cat
-    reglog_3cat, dtc_3cat, rc_3cat, rfc_3cat, mlpc_3cat, gbc_3cat = load_3cat()
+    #@st.cache_data #ajout du cache decorator pour le chargement des modeles
+    #def load_3cat():
+    #    reglog_3cat = joblib.load("model_reglog_3cat")
+    #    dtc_3cat = joblib.load("model_dtc_3cat")
+    #    rc_3cat = joblib.load("model_rc_3cat")
+    #    rfc_3cat = joblib.load("model_rfc_3cat.joblib")
+    #    mlpc_3cat = joblib.load("model_mlpc_3cat")
+    #    gbc_3cat = joblib.load("model_gbc_3cat")
+    #    return reglog_3cat, dtc_3cat, rc_3cat, rfc_3cat, mlpc_3cat, gbc_3cat
+    #reglog_3cat, dtc_3cat, rc_3cat, rfc_3cat, mlpc_3cat, gbc_3cat = load_3cat()
 
     #split en 7 categories
-    @st.cache_data #ajout du cache decorator pour le preprocessing
-    def preprocessing_7cat(df):
+    #@st.cache_data #ajout du cache decorator pour le preprocessing
+    #def preprocessing_7cat(df):
         #remplacement des noms des jours de la variable Day par les chiffres correspondant
-        df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
+    #    df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
         #ajout d'une colonne ResponseTime_cat pour séparer la variable ResponseTime en 7 catégories
-        bin = [0,75,150,450,600,800,900,1200]
-        label = ['xveryshort','veryshort','short', 'medium','xmedium', 'long','xlong']
-        df['ResponseTime_cat'] = pd.cut(df['ResponseTime'], bins=bin, labels=label)
+    #    bin = [0,75,150,450,600,800,900,1200]
+    #    label = ['xveryshort','veryshort','short', 'medium','xmedium', 'long','xlong']
+    #    df['ResponseTime_cat'] = pd.cut(df['ResponseTime'], bins=bin, labels=label)
         #suppression de la variable responseTime
-        df = df.drop('ResponseTime', axis=1)
+    #    df = df.drop('ResponseTime', axis=1)
         #sélection des variables explicatives et variables cibles
-        X = df.drop('ResponseTime_cat', axis = 1)
-        y = df['ResponseTime_cat']
+    #    X = df.drop('ResponseTime_cat', axis = 1)
+    #    y = df['ResponseTime_cat']
         #séparation en jeu d'entrainement et de test
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    #    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         #séparation des colonnes numériques et catégorielles
-        var_num = ['NumCalls', 'DistanceMetrique']
-        var_cat = ['CalYear','DeployedFromLocation', 'PlusCode_Description', 'IncidentGroup', 'gpe_geo', 'PropertyCategory_bis', 'AddressQualifier_bis']
-        var_time = ['HourOfCall', 'week', 'month', 'Day']
+    #    var_num = ['NumCalls', 'DistanceMetrique']
+    #    var_cat = ['CalYear','DeployedFromLocation', 'PlusCode_Description', 'IncidentGroup', 'gpe_geo', 'PropertyCategory_bis', 'AddressQualifier_bis']
+    #    var_time = ['HourOfCall', 'week', 'month', 'Day']
 
-        X_train_num = X_train[var_num]
-        X_train_cat = X_train[var_cat]
-        X_train_time = X_train[var_time]
-        X_test_num = X_test[var_num]
-        X_test_cat = X_test[var_cat]
-        X_test_time = X_test[var_time]
+    #    X_train_num = X_train[var_num]
+    #    X_train_cat = X_train[var_cat]
+    #    X_train_time = X_train[var_time]
+    #    X_test_num = X_test[var_num]
+    #    X_test_cat = X_test[var_cat]
+    #    X_test_time = X_test[var_time]
 
         #gestion des variables temps avec sinus et cosinus (variable cyclique)
-        def sin_transformer(period):
-            return FunctionTransformer(lambda x: np.sin(x / period * 2 * np.pi))
+    #    def sin_transformer(period):
+    #        return FunctionTransformer(lambda x: np.sin(x / period * 2 * np.pi))
 
-        def cos_transformer(period):
-            return FunctionTransformer(lambda x: np.cos(x / period * 2 * np.pi))
+    #    def cos_transformer(period):
+    #        return FunctionTransformer(lambda x: np.cos(x / period * 2 * np.pi))
 
-        for var in X_train_time :
-            X_train_time[var + '_sin'] = sin_transformer(24).fit_transform(X_train_time[var])
-            X_train_time[var + '_cos'] = cos_transformer(24).fit_transform(X_train_time[var])
-            X_train_time = X_train_time.drop(var, axis=1)
+    #    for var in X_train_time :
+    #        X_train_time[var + '_sin'] = sin_transformer(24).fit_transform(X_train_time[var])
+    #        X_train_time[var + '_cos'] = cos_transformer(24).fit_transform(X_train_time[var])
+    #        X_train_time = X_train_time.drop(var, axis=1)
 
-        for var in X_test_time :
-            X_test_time[var + '_sin'] = sin_transformer(24).fit_transform(X_test_time[var])
-            X_test_time[var + '_cos'] = cos_transformer(24).fit_transform(X_test_time[var])
-            X_test_time = X_test_time.drop(var, axis=1)
+    #    for var in X_test_time :
+    #        X_test_time[var + '_sin'] = sin_transformer(24).fit_transform(X_test_time[var])
+    #        X_test_time[var + '_cos'] = cos_transformer(24).fit_transform(X_test_time[var])
+    #        X_test_time = X_test_time.drop(var, axis=1)
 
-        X_train_time.reset_index(drop=True, inplace=True)
-        X_test_time.reset_index(drop=True, inplace=True)
+    #    X_train_time.reset_index(drop=True, inplace=True)
+    #    X_test_time.reset_index(drop=True, inplace=True)
 
         #remplissage des valeurs manquantes par simple imputer avec la stratégie median pour les variables numériques et le most frequent pour les variables catégorielles
         #gestion des données manquantes pour les variables numériques
-        imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
-        X_train_num = imputer_num.fit_transform(X_train_num)
-        X_test_num = imputer_num.transform(X_test_num)
+    #    imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
+    #    X_train_num = imputer_num.fit_transform(X_train_num)
+    #    X_test_num = imputer_num.transform(X_test_num)
 
         #gestion des données manquantes pour les variables catégorielles
-        imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
-        X_train_cat = imputer_cat.fit_transform(X_train_cat)
-        X_test_cat = imputer_cat.transform(X_test_cat)
+    #    imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
+    #    X_train_cat = imputer_cat.fit_transform(X_train_cat)
+    #    X_test_cat = imputer_cat.transform(X_test_cat)
 
         #standardisation des variables numériques avec StandardScaler
-        scaler = StandardScaler()
-        X_train_num = scaler.fit_transform(X_train_num)
-        X_test_num = scaler.transform(X_test_num)
+    #    scaler = StandardScaler()
+    #    X_train_num = scaler.fit_transform(X_train_num)
+    #    X_test_num = scaler.transform(X_test_num)
 
         #encodage des variables catégorielles
-        encoder = OneHotEncoder(drop = 'first', sparse_output=False)
-        X_train_cat = encoder.fit_transform(X_train_cat)
-        X_test_cat = encoder.transform(X_test_cat)
+    #    encoder = OneHotEncoder(drop = 'first', sparse_output=False)
+    #    X_train_cat = encoder.fit_transform(X_train_cat)
+    #    X_test_cat = encoder.transform(X_test_cat)
 
         ##passage en dataframe des tableaux récupérés après encodage
-        X_train_num = pd.DataFrame(X_train_num)
-        X_test_num = pd.DataFrame(X_test_num)
-        X_train_cat = pd.DataFrame(X_train_cat)
-        X_test_cat = pd.DataFrame(X_test_cat)
+    #    X_train_num = pd.DataFrame(X_train_num)
+    #    X_test_num = pd.DataFrame(X_test_num)
+    #    X_train_cat = pd.DataFrame(X_train_cat)
+    #    X_test_cat = pd.DataFrame(X_test_cat)
 
         #concaténation des jeux d'entraînement et de test
-        X_train = pd.concat([X_train_num, X_train_cat, X_train_time], axis=1)
-        X_test = pd.concat([X_test_num, X_test_cat, X_test_time], axis=1)
+    #    X_train = pd.concat([X_train_num, X_train_cat, X_train_time], axis=1)
+    #    X_test = pd.concat([X_test_num, X_test_cat, X_test_time], axis=1)
 
-        X_train.columns = X_train.columns.astype(str)
-        X_test.columns = X_test.columns.astype(str)
+    #    X_train.columns = X_train.columns.astype(str)
+    #    X_test.columns = X_test.columns.astype(str)
 
         #encodage de la variable cible ResponseTime_cat dans l'ordre short, medium, long
-        le = LabelEncoder()
-        y_train = le.fit_transform(y_train)
-        y_test = le.transform(y_test)
-        return X_train, X_test, y_train, y_test
-    X_train_7cat, X_test_7cat, y_train_7cat, y_test_7cat = preprocessing_7cat(df)
+    #    le = LabelEncoder()
+    #    y_train = le.fit_transform(y_train)
+    #    y_test = le.transform(y_test)
+    #    return X_train, X_test, y_train, y_test
+    #X_train_7cat, X_test_7cat, y_train_7cat, y_test_7cat = preprocessing_7cat(df)
 
     #chargement du model
-    reglog_7cat = joblib.load("model_reglog_7cat")
+    #reglog_7cat = joblib.load("model_reglog_7cat")
 
     #split en 5 categories
-    @st.cache_data #ajout du cache decorator pour le preprocessing
-    def preprocessing_5cat(df):
+    #@st.cache_data #ajout du cache decorator pour le preprocessing
+    #def preprocessing_5cat(df):
         #remplacement des noms des jours de la variable Day par les chiffres correspondant
-        df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
+    #    df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
         #ajout d'une colonne ResponseTime_cat pour séparer la variable ResponseTime en 5 catégories
-        bin = [0,150,450,600,800,1200]
-        label = ['veryshort','short', 'medium','xmedium', 'long']
-        df['ResponseTime_cat'] = pd.cut(df['ResponseTime'], bins=bin, labels=label)
+    #    bin = [0,150,450,600,800,1200]
+    #    label = ['veryshort','short', 'medium','xmedium', 'long']
+    #    df['ResponseTime_cat'] = pd.cut(df['ResponseTime'], bins=bin, labels=label)
         #suppression de la variable responseTime
-        df = df.drop('ResponseTime', axis=1)
+    #    df = df.drop('ResponseTime', axis=1)
         #sélection des variables explicatives et variables cibles
-        X = df.drop('ResponseTime_cat', axis = 1)
-        y = df['ResponseTime_cat']
+    #    X = df.drop('ResponseTime_cat', axis = 1)
+    #    y = df['ResponseTime_cat']
         #séparation en jeu d'entrainement et de test
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    #    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         #séparation des colonnes numériques et catégorielles
-        var_num = ['NumCalls', 'DistanceMetrique']
-        var_cat = ['CalYear','DeployedFromLocation', 'PlusCode_Description', 'IncidentGroup', 'gpe_geo', 'PropertyCategory_bis', 'AddressQualifier_bis']
-        var_time = ['HourOfCall', 'week', 'month', 'Day']
+    #    var_num = ['NumCalls', 'DistanceMetrique']
+    #    var_cat = ['CalYear','DeployedFromLocation', 'PlusCode_Description', 'IncidentGroup', 'gpe_geo', 'PropertyCategory_bis', 'AddressQualifier_bis']
+    #    var_time = ['HourOfCall', 'week', 'month', 'Day']
 
-        X_train_num = X_train[var_num]
-        X_train_cat = X_train[var_cat]
-        X_train_time = X_train[var_time]
-        X_test_num = X_test[var_num]
-        X_test_cat = X_test[var_cat]
-        X_test_time = X_test[var_time]
+    #    X_train_num = X_train[var_num]
+    #    X_train_cat = X_train[var_cat]
+    #    X_train_time = X_train[var_time]
+    #    X_test_num = X_test[var_num]
+    #    X_test_cat = X_test[var_cat]
+    #    X_test_time = X_test[var_time]
 
         #gestion des variables temps avec sinus et cosinus (variable cyclique)
-        def sin_transformer(period):
-            return FunctionTransformer(lambda x: np.sin(x / period * 2 * np.pi))
+    #    def sin_transformer(period):
+    #        return FunctionTransformer(lambda x: np.sin(x / period * 2 * np.pi))
 
-        def cos_transformer(period):
-            return FunctionTransformer(lambda x: np.cos(x / period * 2 * np.pi))
+    #    def cos_transformer(period):
+    #        return FunctionTransformer(lambda x: np.cos(x / period * 2 * np.pi))
 
-        for var in X_train_time :
-            X_train_time[var + '_sin'] = sin_transformer(24).fit_transform(X_train_time[var])
-            X_train_time[var + '_cos'] = cos_transformer(24).fit_transform(X_train_time[var])
-            X_train_time = X_train_time.drop(var, axis=1)
+    #    for var in X_train_time :
+    #        X_train_time[var + '_sin'] = sin_transformer(24).fit_transform(X_train_time[var])
+    #        X_train_time[var + '_cos'] = cos_transformer(24).fit_transform(X_train_time[var])
+    #        X_train_time = X_train_time.drop(var, axis=1)
 
-        for var in X_test_time :
-            X_test_time[var + '_sin'] = sin_transformer(24).fit_transform(X_test_time[var])
-            X_test_time[var + '_cos'] = cos_transformer(24).fit_transform(X_test_time[var])
-            X_test_time = X_test_time.drop(var, axis=1)
+    #    for var in X_test_time :
+    #        X_test_time[var + '_sin'] = sin_transformer(24).fit_transform(X_test_time[var])
+    #        X_test_time[var + '_cos'] = cos_transformer(24).fit_transform(X_test_time[var])
+    #        X_test_time = X_test_time.drop(var, axis=1)
 
-        X_train_time.reset_index(drop=True, inplace=True)
-        X_test_time.reset_index(drop=True, inplace=True)
+    #    X_train_time.reset_index(drop=True, inplace=True)
+    #    X_test_time.reset_index(drop=True, inplace=True)
 
         #remplissage des valeurs manquantes par simple imputer avec la stratégie median pour les variables numériques et le most frequent pour les variables catégorielles
         #gestion des données manquantes pour les variables numériques
-        imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
-        X_train_num = imputer_num.fit_transform(X_train_num)
-        X_test_num = imputer_num.transform(X_test_num)
+    #    imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
+    #    X_train_num = imputer_num.fit_transform(X_train_num)
+    #    X_test_num = imputer_num.transform(X_test_num)
 
         #gestion des données manquantes pour les variables catégorielles
-        imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
-        X_train_cat = imputer_cat.fit_transform(X_train_cat)
-        X_test_cat = imputer_cat.transform(X_test_cat)
+    #    imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
+    #    X_train_cat = imputer_cat.fit_transform(X_train_cat)
+    #    X_test_cat = imputer_cat.transform(X_test_cat)
 
         #standardisation des variables numériques avec StandardScaler
-        scaler = StandardScaler()
-        X_train_num = scaler.fit_transform(X_train_num)
-        X_test_num = scaler.transform(X_test_num)
+    #    scaler = StandardScaler()
+    #    X_train_num = scaler.fit_transform(X_train_num)
+    #    X_test_num = scaler.transform(X_test_num)
 
         #encodage des variables catégorielles
-        encoder = OneHotEncoder(drop = 'first', sparse_output=False)
-        X_train_cat = encoder.fit_transform(X_train_cat)
-        X_test_cat = encoder.transform(X_test_cat)
+    #    encoder = OneHotEncoder(drop = 'first', sparse_output=False)
+    #    X_train_cat = encoder.fit_transform(X_train_cat)
+    #    X_test_cat = encoder.transform(X_test_cat)
 
         ##passage en dataframe des tableaux récupérés après encodage
-        X_train_num = pd.DataFrame(X_train_num)
-        X_test_num = pd.DataFrame(X_test_num)
-        X_train_cat = pd.DataFrame(X_train_cat)
-        X_test_cat = pd.DataFrame(X_test_cat)
+    #    X_train_num = pd.DataFrame(X_train_num)
+    #    X_test_num = pd.DataFrame(X_test_num)
+    #    X_train_cat = pd.DataFrame(X_train_cat)
+    #    X_test_cat = pd.DataFrame(X_test_cat)
 
         #concaténation des jeux d'entraînement et de test
-        X_train = pd.concat([X_train_num, X_train_cat, X_train_time], axis=1)
-        X_test = pd.concat([X_test_num, X_test_cat, X_test_time], axis=1)
+    #    X_train = pd.concat([X_train_num, X_train_cat, X_train_time], axis=1)
+    #    X_test = pd.concat([X_test_num, X_test_cat, X_test_time], axis=1)
 
-        X_train.columns = X_train.columns.astype(str)
-        X_test.columns = X_test.columns.astype(str)
+    #    X_train.columns = X_train.columns.astype(str)
+    #    X_test.columns = X_test.columns.astype(str)
 
         #encodage de la variable cible ResponseTime_cat dans l'ordre short, medium, long
-        le = LabelEncoder()
-        y_train = le.fit_transform(y_train)
-        y_test = le.transform(y_test)
-        return X_train, X_test, y_train, y_test
-    X_train_5cat, X_test_5cat, y_train_5cat, y_test_5cat = preprocessing_5cat(df)
+    #    le = LabelEncoder()
+    #    y_train = le.fit_transform(y_train)
+    #    y_test = le.transform(y_test)
+    #    return X_train, X_test, y_train, y_test
+    #X_train_5cat, X_test_5cat, y_train_5cat, y_test_5cat = preprocessing_5cat(df)
 
     #chargement du model
-    reglog_5cat = joblib.load("model_reglog_5cat")
+    #reglog_5cat = joblib.load("model_reglog_5cat")
 
     #split en 2 categories
-    @st.cache_data #ajout du cache decorator pour le preprocessing
-    def preprocessing_2cat(df):
+    #@st.cache_data #ajout du cache decorator pour le preprocessing
+    #def preprocessing_2cat(df):
         #remplacement des noms des jours de la variable Day par les chiffres correspondant
-        df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
+    #    df['Day'] = df['Day'].replace({'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7})
         #ajout d'une colonne ResponseTime_cat pour séparer la variable ResponseTime en 7 catégories
-        bin = [0,450,1200]
-        label = ['short', 'medium-long']
-        df['ResponseTime_cat'] = pd.cut(df['ResponseTime'], bins=bin, labels=label)
+    #    bin = [0,450,1200]
+    #    label = ['short', 'medium-long']
+    #    df['ResponseTime_cat'] = pd.cut(df['ResponseTime'], bins=bin, labels=label)
         #suppression de la variable responseTime
-        df = df.drop('ResponseTime', axis=1)
+    #    df = df.drop('ResponseTime', axis=1)
         #sélection des variables explicatives et variables cibles
-        X = df.drop('ResponseTime_cat', axis = 1)
-        y = df['ResponseTime_cat']
+    #    X = df.drop('ResponseTime_cat', axis = 1)
+    #    y = df['ResponseTime_cat']
         #séparation en jeu d'entrainement et de test
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    #    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         #séparation des colonnes numériques et catégorielles
-        var_num = ['NumCalls', 'DistanceMetrique']
-        var_cat = ['CalYear','DeployedFromLocation', 'PlusCode_Description', 'IncidentGroup', 'gpe_geo', 'PropertyCategory_bis', 'AddressQualifier_bis']
-        var_time = ['HourOfCall', 'week', 'month', 'Day']
+    #    var_num = ['NumCalls', 'DistanceMetrique']
+    #    var_cat = ['CalYear','DeployedFromLocation', 'PlusCode_Description', 'IncidentGroup', 'gpe_geo', 'PropertyCategory_bis', 'AddressQualifier_bis']
+    #    var_time = ['HourOfCall', 'week', 'month', 'Day']
 
-        X_train_num = X_train[var_num]
-        X_train_cat = X_train[var_cat]
-        X_train_time = X_train[var_time]
-        X_test_num = X_test[var_num]
-        X_test_cat = X_test[var_cat]
-        X_test_time = X_test[var_time]
+    #    X_train_num = X_train[var_num]
+    #    X_train_cat = X_train[var_cat]
+    #    X_train_time = X_train[var_time]
+    #    X_test_num = X_test[var_num]
+    #    X_test_cat = X_test[var_cat]
+    #    X_test_time = X_test[var_time]
 
         #gestion des variables temps avec sinus et cosinus (variable cyclique)
-        def sin_transformer(period):
-            return FunctionTransformer(lambda x: np.sin(x / period * 2 * np.pi))
+    #    def sin_transformer(period):
+    #        return FunctionTransformer(lambda x: np.sin(x / period * 2 * np.pi))
 
-        def cos_transformer(period):
-            return FunctionTransformer(lambda x: np.cos(x / period * 2 * np.pi))
+    #    def cos_transformer(period):
+    #        return FunctionTransformer(lambda x: np.cos(x / period * 2 * np.pi))
 
-        for var in X_train_time :
-            X_train_time[var + '_sin'] = sin_transformer(24).fit_transform(X_train_time[var])
-            X_train_time[var + '_cos'] = cos_transformer(24).fit_transform(X_train_time[var])
-            X_train_time = X_train_time.drop(var, axis=1)
+    #    for var in X_train_time :
+    #        X_train_time[var + '_sin'] = sin_transformer(24).fit_transform(X_train_time[var])
+    #        X_train_time[var + '_cos'] = cos_transformer(24).fit_transform(X_train_time[var])
+    #        X_train_time = X_train_time.drop(var, axis=1)
 
-        for var in X_test_time :
-            X_test_time[var + '_sin'] = sin_transformer(24).fit_transform(X_test_time[var])
-            X_test_time[var + '_cos'] = cos_transformer(24).fit_transform(X_test_time[var])
-            X_test_time = X_test_time.drop(var, axis=1)
+    #    for var in X_test_time :
+    #        X_test_time[var + '_sin'] = sin_transformer(24).fit_transform(X_test_time[var])
+    #        X_test_time[var + '_cos'] = cos_transformer(24).fit_transform(X_test_time[var])
+    #        X_test_time = X_test_time.drop(var, axis=1)
 
-        X_train_time.reset_index(drop=True, inplace=True)
-        X_test_time.reset_index(drop=True, inplace=True)
+    #    X_train_time.reset_index(drop=True, inplace=True)
+    #    X_test_time.reset_index(drop=True, inplace=True)
 
         #remplissage des valeurs manquantes par simple imputer avec la stratégie median pour les variables numériques et le most frequent pour les variables catégorielles
         #gestion des données manquantes pour les variables numériques
-        imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
-        X_train_num = imputer_num.fit_transform(X_train_num)
-        X_test_num = imputer_num.transform(X_test_num)
+    #    imputer_num = SimpleImputer(missing_values=np.nan, strategy='median')
+    #    X_train_num = imputer_num.fit_transform(X_train_num)
+    #    X_test_num = imputer_num.transform(X_test_num)
 
         #gestion des données manquantes pour les variables catégorielles
-        imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
-        X_train_cat = imputer_cat.fit_transform(X_train_cat)
-        X_test_cat = imputer_cat.transform(X_test_cat)
+    #    imputer_cat = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
+    #    X_train_cat = imputer_cat.fit_transform(X_train_cat)
+    #    X_test_cat = imputer_cat.transform(X_test_cat)
 
         #standardisation des variables numériques avec StandardScaler
-        scaler = StandardScaler()
-        X_train_num = scaler.fit_transform(X_train_num)
-        X_test_num = scaler.transform(X_test_num)
+    #    scaler = StandardScaler()
+    #    X_train_num = scaler.fit_transform(X_train_num)
+    #    X_test_num = scaler.transform(X_test_num)
 
         #encodage des variables catégorielles
-        encoder = OneHotEncoder(drop = 'first', sparse_output=False)
-        X_train_cat = encoder.fit_transform(X_train_cat)
-        X_test_cat = encoder.transform(X_test_cat)
+    #    encoder = OneHotEncoder(drop = 'first', sparse_output=False)
+    #    X_train_cat = encoder.fit_transform(X_train_cat)
+    #    X_test_cat = encoder.transform(X_test_cat)
 
         ##passage en dataframe des tableaux récupérés après encodage
-        X_train_num = pd.DataFrame(X_train_num)
-        X_test_num = pd.DataFrame(X_test_num)
-        X_train_cat = pd.DataFrame(X_train_cat)
-        X_test_cat = pd.DataFrame(X_test_cat)
+    #    X_train_num = pd.DataFrame(X_train_num)
+    #    X_test_num = pd.DataFrame(X_test_num)
+    #    X_train_cat = pd.DataFrame(X_train_cat)
+    #    X_test_cat = pd.DataFrame(X_test_cat)
 
         #concaténation des jeux d'entraînement et de test
-        X_train = pd.concat([X_train_num, X_train_cat, X_train_time], axis=1)
-        X_test = pd.concat([X_test_num, X_test_cat, X_test_time], axis=1)
+    #    X_train = pd.concat([X_train_num, X_train_cat, X_train_time], axis=1)
+    #    X_test = pd.concat([X_test_num, X_test_cat, X_test_time], axis=1)
 
-        X_train.columns = X_train.columns.astype(str)
-        X_test.columns = X_test.columns.astype(str)
+    #    X_train.columns = X_train.columns.astype(str)
+    #    X_test.columns = X_test.columns.astype(str)
 
         #encodage de la variable cible ResponseTime_cat dans l'ordre short, medium, long
-        le = LabelEncoder()
-        y_train = le.fit_transform(y_train)
-        y_test = le.transform(y_test)
-        return X_train, X_test, y_train, y_test
-    X_train_2cat, X_test_2cat, y_train_2cat, y_test_2cat = preprocessing_2cat(df)
+    #    le = LabelEncoder()
+    #    y_train = le.fit_transform(y_train)
+    #    y_test = le.transform(y_test)
+    #    return X_train, X_test, y_train, y_test
+    #X_train_2cat, X_test_2cat, y_train_2cat, y_test_2cat = preprocessing_2cat(df)
 
     #chargement du model
-    reglog_2cat = joblib.load("model_reglog_2cat")
+    #reglog_2cat = joblib.load("model_reglog_2cat")
         
     ##chargement des scores de tous les modeles
     @st.cache_data #ajout du cache decorator pour le chargement des scores de tous les modeles
