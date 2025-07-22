@@ -370,7 +370,7 @@ elif page == pages[1]:
               </thead>
               <tbody>
                 <tr><td style="border: 1px solid black; padding: 8px; text-align: center;">IncidentNumber</td><td style="border: 1px solid black; padding: 8px; text-align: center;">Numéro d'incident (index)</td></tr>
-                <tr><td style="border: 1px solid black; padding: 8px; text-align: center;">BoroughName</td><td style="border: 1px solid black; padding: 8px; text-align: center;">Nom de la personne</td></tr>
+                <tr><td style="border: 1px solid black; padding: 8px; text-align: center;">BoroughName</td><td style="border: 1px solid black; padding: 8px; text-align: center;">Nom de l'arrondissement</td></tr>
                 <tr><td style="border: 1px solid black; padding: 8px; text-align: center;">WardName</td><td style="border: 1px solid black; padding: 8px; text-align: center;">Quartier de l'incident</td></tr>
                 <tr><td style="border: 1px solid black; padding: 8px; text-align: center;">ResourceMobilisationId</td><td style="border: 1px solid black; padding: 8px; text-align: center;">Id des ressources mobilisées</td></tr>
                 <tr><td style="border: 1px solid black; padding: 8px; text-align: center;">Resource_Code</td><td style="border: 1px solid black; padding: 8px; text-align: center;">Code de ces ressources</td></tr>
