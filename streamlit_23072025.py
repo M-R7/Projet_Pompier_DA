@@ -458,6 +458,10 @@ Ce jeu comporte 110 entrées, pour 6 colonnes. :<br>
                     <td style="border: 1px solid black; padding: 8px; text-align: center;">Station_Northing</td>
                     <td style="border: 1px solid black; padding: 8px; text-align: center;">Coordonnées GPS de la station de déploiement format northing</td>
                 </tr>
+                <tr>
+                    <td style="border: 1px solid black; padding: 8px; text-align: center;">DistanceMetrique</td>
+                    <td style="border: 1px solid black; padding: 8px; text-align: center;">Distance en mètre entre le lieu de l'incident et la station de pompier</td>
+                </tr>
             </tbody>
         </table>
         """
